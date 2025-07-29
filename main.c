@@ -30,9 +30,9 @@
 
 u8* framebuffer = NULL;
 int write_bank = 0;
-volatile int pending_bank = 0;
-volatile int displayed_bank = 0;
-int vsync_count = 0;
+volatile int pending_bank = 0;          // updated during interrupt!
+volatile int displayed_bank = 0;        // updated during interrupt!
+volatile int vsync_count = 0;           // updated during interrupt!
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
     // TODO: Probably want to preserve all registers used in the event handler?
