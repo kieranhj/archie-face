@@ -22,3 +22,23 @@ void v_setWriteBank(int bank) {
                 : "r"(bank)  // inputs 
                 : "r0", "r1", "cc"); // clobbers
 }
+
+void v_claimEventHandler(event_handler func) {
+    asm volatile("mov r0, " swiToConst(EventV) "\n"
+                 "mov r1, %0\n"
+                 "mov r2, #0\n"
+                 "swi " swiToConst(OS_Claim)
+                :            // outputs
+                : "r"(func)  // inputs 
+                : "r0", "r1", "r2", "cc"); // clobbers
+}
+
+void v_releaseEventHandler(event_handler func) {
+    asm volatile("mov r0, " swiToConst(EventV) "\n"
+                 "mov r1, %0\n"
+                 "mov r2, #0\n"
+                 "swi " swiToConst(OS_Release)
+                :            // outputs
+                : "r"(func)  // inputs 
+                : "r0", "r1", "r2", "cc"); // clobbers
+}

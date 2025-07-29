@@ -27,11 +27,22 @@
 
 #define Screen_SizeBytes 320*256
 
-u8* framebuffer;
-int screen_bank;
+u8* framebuffer = NULL;
+int screen_bank = 0;
+int vsync_count = 0;
+
+void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
+    (void) event_param1;
+    (void) event_param2;
+    (void) event_param3;
+    (void) event_param4;
+    if (event_no != 4) return;
+    vsync_count++;
+}
 
 void quit(){
-    v_disableVSync();   // disables vsync event (but no handler?)
+    v_disableVSync();   // disables vsync event
+    v_releaseEventHandler(eventv_handler);
     //flush last vsync
     v_waitForVSync();
 }
@@ -41,7 +52,8 @@ void init(){
 
     v_setMode(13);
     v_disableTextCursor();
-    v_enableVSync();    // enables vsync event (but no handler?)
+    v_claimEventHandler(eventv_handler);
+    v_enableVSync();    // enables vsync event
 
     atexit(quit); //register exit callback
 }

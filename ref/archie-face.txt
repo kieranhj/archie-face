@@ -20,6 +20,7 @@ DEBUG:
 - Debug key presses
 - Debug variables
 - Debug messages displayed to screen
+- printf to emulator log file (without slowdown) would be great!
 
 LIBS:
 - Memcopy
