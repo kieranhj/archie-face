@@ -26,18 +26,29 @@
 #include "src/flow-field.h"
 
 #define Screen_SizeBytes 320*256
+#define Screen_Banks 3
 
 u8* framebuffer = NULL;
-int screen_bank = 0;
+int write_bank = 0;
+volatile int pending_bank = 0;
+volatile int displayed_bank = 0;
 int vsync_count = 0;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
+    // TODO: Probably want to preserve all registers used in the event handler?
     (void) event_param1;
     (void) event_param2;
     (void) event_param3;
     (void) event_param4;
     if (event_no != 4) return;
+
     vsync_count++;
+
+    // Keep track of which screen bank we are displaying.
+    if (pending_bank) {
+        displayed_bank = pending_bank;
+        pending_bank = 0;
+    }
 }
 
 void quit(){
@@ -71,23 +82,25 @@ int main(int argc, char* argv[]){
     MakeGrid();
     MakeParticles();
 
-    screen_bank = 0;    // write bank
+    // Triple screen buffering.
+    displayed_bank = 0;
+    pending_bank = 1;   // display next vsync.
+    write_bank = 2;
+    v_setDisplayBank(pending_bank);
 
     // Main loop.
     while(!k_checkKeypress(KEY_ESCAPE)){
-
-        // Flip screens
-        v_setDisplayBank(1+screen_bank);
-        screen_bank ^= 1;
-        v_setWriteBank(1+screen_bank);
 
         // Tick
         updateGrid();
         moveParticles();
 
         // Vsync
-        v_waitForVSync();
+        // v_waitForVSync();
 
+        if (++write_bank > Screen_Banks) write_bank=1;      // get next bank for writing.
+        while (write_bank == displayed_bank) {}         // block here if we're trying to write to the currently displayed bank.
+        v_setWriteBank(write_bank);
         framebuffer = v_getScreenAddress();
 
         // Clear screen
@@ -102,11 +115,16 @@ int main(int argc, char* argv[]){
         //}
 
         plotParticles();
+
+        // Flip screens
+        while (pending_bank) {}         // block here if pending display at next vsync (we got too far ahead).
+        pending_bank = write_bank;
+        v_setDisplayBank(write_bank);   // screen won't be displayed until vsync.
     }
 
-    KillGrid();
+    v_setWriteBank(write_bank);
 
-    v_setDisplayBank(1+screen_bank);
+    KillGrid();
 
 	return 0;
 }
