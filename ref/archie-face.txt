@@ -1,0 +1,40 @@
+Archie-McArchie-Face. Aka Fast Archimedes C Environment.
+~~~
+Or something. An Archimedes demo framework in C built on ArchieSDK.
+
+What's missing to make this functional?
+
+FRAMEWORK:
+- Multiple source files w/ link
+- Including binary files in source, e.g. sine table.
+- Calling larger asm functions safely.
+- Ideally re-use existing archie-verse asm libs?
+
+LOOP CONTROL:
+- Vsync handler
+- Triple buffering
+
+DEBUG:
+- Vsync counter / frame rate
+- Raster timing
+- Debug key presses
+- Debug variables
+- Debug messages displayed to screen
+
+LIBS:
+- Memcopy
+- Memclr / Memset
+- Linked list?
+- Random etc.
+
+FIXED-POINT MATHS:
+- Macros
+- Sine & cosine tables + generation
+- Vector lib
+- Matrix lib
+
+DRAWING:
+- Points
+- Lines
+- Triangles
+- Circles

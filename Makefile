@@ -11,8 +11,10 @@ ARCHIEOBJDUMP=$(ARCHIESDK)/tools/bin/arm-archie-objdump
 # Your program's name
 APPNAME = grid
 
+LIBFILES = lib/mem.c lib/plot.c lib/trig.c lib/video.c
+
 # Your source files (.c or .s)
-SRCFILES = main.c
+SRCFILES = main.c src/flow-field.c
 
 # Extra libraries
 LIBS = -lm
@@ -23,7 +25,7 @@ CFLAGS += -O2 -g
 
 all: build
 # Build program
-	$(ARCHIECC) $(CFLAGS) -obuild/$(APPNAME).elf $(SRCFILES) $(LIBS) 
+	$(ARCHIECC) $(CFLAGS) -obuild/$(APPNAME).elf $(SRCFILES) $(LIBFILES) $(LIBS) 
 # Get a human readable output of the assembly and symbols etc.
 	 $(ARCHIEOBJDUMP) -d -S -t build/$(APPNAME).elf > build/compile.txt
 # Extract final binary from ELF
