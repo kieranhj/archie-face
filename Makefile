@@ -1,0 +1,44 @@
+###############################################################################
+# Setting up ArchieSDK
+ifeq ($(strip $(ARCHIESDK)),)
+$(error "ARCHIESDK was not found in your environment. please export ARCHIESDK)
+endif
+include $(ARCHIESDK)/config.mk
+###############################################################################
+
+ARCHIEOBJDUMP=$(ARCHIESDK)/tools/bin/arm-archie-objdump
+
+# Your program's name
+APPNAME = grid
+
+# Your source files (.c or .s)
+SRCFILES = main.c
+
+# Extra libraries
+LIBS = -lm
+
+# Make sure to always append to CFLAGS with += instead of overwriting them
+# Add -g to interleave source with asm in compile.txt
+CFLAGS += -O2 -g
+
+all: build
+# Build program
+	$(ARCHIECC) $(CFLAGS) -obuild/$(APPNAME).elf $(SRCFILES) $(LIBS) 
+# Get a human readable output of the assembly and symbols etc.
+	 $(ARCHIEOBJDUMP) -d -S -t build/$(APPNAME).elf > build/compile.txt
+# Extract final binary from ELF
+	$(ARCHIEOBJCOPY) -O binary build/$(APPNAME).elf build/$(APPNAME),ff8
+# Copy final binary to hostfs (modify config.mk to set your path)
+	cp -f build/$(APPNAME),ff8 $(ARCHIECOPYPATH)/$(APPNAME),ff8 | true
+
+build:
+	mkdir build
+
+asm:
+# Generate ASM from C files
+	$(ARCHIECC) $(CFLAGS) -S $(SRCFILES)
+
+clean:
+# Clean up build files
+	rm -f *,ff8
+	rm -f tmpProg
