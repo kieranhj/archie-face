@@ -9,6 +9,7 @@
 #include <math.h>
 #include <time.h>
 #include <swis.h>
+#include <assert.h>
 
 // ArchieSDK libraries.
 #include "archie/swi.h"
@@ -27,6 +28,7 @@
 
 #define Screen_SizeBytes 320*256
 #define Screen_Banks 3
+#define Screen_SizeTotal (Screen_SizeBytes * Screen_Banks)
 
 u8* framebuffer = NULL;
 int write_bank = 0;
@@ -59,9 +61,10 @@ void quit(){
 }
 
 void init(){ 
-    // TODO: Initialise screen RAM size for num_banks.
-
     v_setMode(13);
+    u32 screen_ram = v_setScreenMemory(Screen_SizeTotal);
+    assert(screen_ram >= Screen_SizeTotal);
+    
     v_disableTextCursor();
     v_claimEventHandler(eventv_handler);
     v_enableVSync();    // enables vsync event
