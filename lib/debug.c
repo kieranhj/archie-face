@@ -3,9 +3,15 @@
 // ============================================================================
 
 #include "archie/SDKTypes.h"
+#include "archie/swi.h"
+
 #define INCBIN_STYLE INCBIN_STYLE_SNAKE
 #define INCBIN_PREFIX
 #include "incbin.h"
+
+#include "debug.h"
+
+#define VIDC_Write 0x03400000
 
 INCBIN_EXTERN(debug_font);
 
@@ -58,4 +64,15 @@ void debug_plot_string_mode13(const char *string) {
 
         scr_ptr += 8 - (Screen_Stride * 8);
     }
+}
+
+void debug_write_vidc(u32 vidc_reg) {
+    asm volatile("swi " swiToConst(OS_EnterOS) "\n"
+                 "mov r1, " swiToConst(VIDC_Write) "\n"
+                 "str %0, [r1]\n"
+                 "teqp pc, #0\n"
+                 "mov r0, r0"
+                :            // outputs
+                : "r"(vidc_reg)  // inputs 
+                : "r0", "r1", "cc"); // clobbers
 }

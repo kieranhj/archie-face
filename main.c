@@ -111,6 +111,8 @@ int main(int argc, char* argv[]){
     // Main loop.
     while(!k_checkKeypress(KEY_ESCAPE)){
 
+        SET_BORDER(0x000f);
+
         // Tick
         updateGrid();
         moveParticles();
@@ -126,13 +128,12 @@ int main(int argc, char* argv[]){
         vsync_delta = vsync_count - last_vsync;
         last_vsync = vsync_count;
 
+        SET_BORDER(0x0f00);
+
         // Clear screen
         memsetFast((u32*)framebuffer, 0, Screen_SizeBytes);
 
-        // Print some debug info.
-        char vsync_str[16];
-        sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-        debug_plot_string_mode13(vsync_str);
+        SET_BORDER(0x00f0);
 
         // Draw screen
         //plotSinCos();
@@ -143,6 +144,16 @@ int main(int argc, char* argv[]){
         //}
 
         plotParticles();
+
+        SET_BORDER(0x0fff);
+
+        // Print some debug info.
+        char vsync_str[16];
+        //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
+        sprintf(vsync_str, "%d", vsync_delta);
+        debug_plot_string_mode13(vsync_str);
+
+        SET_BORDER(0x0000);
 
         // Flip screens
         while (pending_bank) {}         // block here if pending display at next vsync (we got too far ahead).
