@@ -3,13 +3,12 @@
 // ============================================================================
 
 #include <stdlib.h>
-#include "../lib/trig.h"
+#include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
+#include "trig.h"
 #include "plot.h"
 
-extern u8* framebuffer;     // TODO: Where does this get defined?
-
 void plotPoint(register int x, register int y, register u8 c) {
-    if (x>=0 && x<320 && y>=0 && y<256) *(framebuffer + x + y*320) = c;
+    if (x>=0 && x<320 && y>=0 && y<256) *(g_framebuffer + x + y*320) = c;
 }
 
 void plotSinCos() {
@@ -30,7 +29,7 @@ void plotLine(int x0, int y0, int x1, int y1, u8 col) {
     while(1) {
         if (x0==x1 && y0==y1) break;
 
-        if (x0>=0 && x0<320 && y0>=0 && y0<256) *(framebuffer + x0 + y0*320) = col;
+        if (x0>=0 && x0<320 && y0>=0 && y0<256) *(g_framebuffer + x0 + y0*320) = col;
 
         int e2 = 2 * error;
         if (e2 >= dy) {

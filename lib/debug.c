@@ -2,21 +2,12 @@
 // Debug lib.
 // ============================================================================
 
-#include "archie/SDKTypes.h"
 #include "archie/swi.h"
 
-#define INCBIN_STYLE INCBIN_STYLE_SNAKE
-#define INCBIN_PREFIX
-#include "incbin.h"
-
+#include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 #include "debug.h"
 
-#define VIDC_Write 0x03400000
-
 INCBIN_EXTERN(debug_font);
-
-extern u8* framebuffer;     // TODO: Where does this get defined?
-#define Screen_Stride       320 // 8bpp
 
 #define Debug_MaxGlyphs 96
 
@@ -42,7 +33,7 @@ void debug_init() {
 }
 
 void debug_plot_string_mode13(const char *string) {
-    u8 *scr_ptr = framebuffer;
+    u8 *scr_ptr = g_framebuffer;
     char ascii;
 
     while((ascii = *string++)) {

@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "ctype.h": "c",
-        "corecrt_wctype.h": "c"
+        "corecrt_wctype.h": "c",
+        "flow-field.h": "c"
     }
 }

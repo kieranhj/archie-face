@@ -25,23 +25,12 @@
 #include "lib/vector.h"
 
 // App modules.
+#include "src/globals.h"
 #include "src/flow-field.h"
-
-#define INCBIN_STYLE INCBIN_STYLE_SNAKE
-#define INCBIN_PREFIX
-#include "lib/incbin.h"
-
-#define Screen_Mode         13
-#define Screen_Width        320
-#define Screen_Height       256
-#define Screen_Stride       320 // 8bpp
-#define Screen_SizeBytes    (Screen_Stride*Screen_Height)
-#define Screen_Banks        3
-#define Screen_SizeTotal    (Screen_SizeBytes * Screen_Banks)
 
 // TODO: BSS section isn't zero'd on app init... :S
 
-u8* framebuffer = NULL;                 // TODO: Should this be const?
+u8* g_framebuffer = NULL;                 // TODO: Should this be const?
 int write_bank;
 volatile int pending_bank = 0;          // updated during interrupt!
 volatile int displayed_bank;        // updated during interrupt!
@@ -123,7 +112,7 @@ int main(int argc, char* argv[]){
         if (++write_bank > Screen_Banks) write_bank=1;      // get next bank for writing.
         while (write_bank == displayed_bank) {}         // block here if we're trying to write to the currently displayed bank.
         v_setWriteBank(write_bank);
-        framebuffer = v_getScreenAddress();
+        g_framebuffer = v_getScreenAddress();
 
         vsync_delta = vsync_count - last_vsync;
         last_vsync = vsync_count;
@@ -131,7 +120,7 @@ int main(int argc, char* argv[]){
         SET_BORDER(0x0f00);
 
         // Clear screen
-        memsetFast((u32*)framebuffer, 0, Screen_SizeBytes);
+        memsetFast((u32*)g_framebuffer, 0, Screen_SizeBytes);
 
         SET_BORDER(0x00f0);
 
