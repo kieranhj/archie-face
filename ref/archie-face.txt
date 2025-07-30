@@ -5,26 +5,27 @@ Or something. An Archimedes demo framework in C built on ArchieSDK.
 What's missing to make this functional?
 
 FRAMEWORK:
-- Multiple source files w/ link
-- Including binary files in source, e.g. sine table.
+- Multiple source files - DONE
+- Build object files and link?
+- Including binary files in source, e.g. sine table. - STATED w/ debug font
 - Calling larger asm functions safely.
 - Ideally re-use existing archie-verse asm libs?
 
 LOOP CONTROL:
-- Vsync handler
-- Triple buffering
+- Vsync handler - DONE
+- Triple buffering - DONE
 
 DEBUG:
-- Vsync counter / frame rate
+- Vsync counter / frame rate - STARTED
 - Raster timing
 - Debug key presses
 - Debug variables
-- Debug messages displayed to screen
-- printf to emulator log file (without slowdown) would be great!
+- Debug messages displayed to screen - STARTED
+- printf to emulator log file (without slowdown) would be great! :)s
 
 LIBS:
-- Memcopy
-- Memclr / Memset
+- Memcopy fast
+- Memclr / Memset fast - STARTED
 - Linked list?
 - Random etc.
 
@@ -35,7 +36,7 @@ FIXED-POINT MATHS:
 - Matrix lib
 
 DRAWING:
-- Points
-- Lines
+- Points - STARTED
+- Lines - STARTED
 - Triangles
 - Circles

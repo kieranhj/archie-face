@@ -12,7 +12,7 @@
 #define GRID_OFFX (GRID_STEPX/2)
 #define GRID_OFFY (GRID_STEPY/2)
 
-#define NUM_PARTICLES 512
+#define NUM_PARTICLES 256
 
 void MakeGrid();
 void MakePermutation();

@@ -17,6 +17,7 @@
 #include "archie/keyboard.h"
 
 // My libraries. :)
+#include "lib/debug.h"
 #include "lib/mem.h"
 #include "lib/plot.h"
 #include "lib/trig.h"
@@ -26,15 +27,27 @@
 // App modules.
 #include "src/flow-field.h"
 
-#define Screen_SizeBytes 320*256
-#define Screen_Banks 3
-#define Screen_SizeTotal (Screen_SizeBytes * Screen_Banks)
+#define INCBIN_STYLE INCBIN_STYLE_SNAKE
+#define INCBIN_PREFIX
+#include "lib/incbin.h"
 
-u8* framebuffer = NULL;
-int write_bank = 0;
+#define Screen_Mode         13
+#define Screen_Width        320
+#define Screen_Height       256
+#define Screen_Stride       320 // 8bpp
+#define Screen_SizeBytes    (Screen_Stride*Screen_Height)
+#define Screen_Banks        3
+#define Screen_SizeTotal    (Screen_SizeBytes * Screen_Banks)
+
+// TODO: BSS section isn't zero'd on app init... :S
+
+u8* framebuffer = NULL;                 // TODO: Should this be const?
+int write_bank;
 volatile int pending_bank = 0;          // updated during interrupt!
-volatile int displayed_bank = 0;        // updated during interrupt!
+volatile int displayed_bank;        // updated during interrupt!
 volatile int vsync_count = 0;           // updated during interrupt!
+int vsync_delta;
+int last_vsync;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
     // TODO: Probably want to preserve all registers used in the event handler?
@@ -61,13 +74,15 @@ void quit(){
 }
 
 void init(){ 
-    v_setMode(13);
+    v_setMode(Screen_Mode);
     u32 screen_ram = v_setScreenMemory(Screen_SizeTotal);
     assert(screen_ram >= Screen_SizeTotal);
-    
+
     v_disableTextCursor();
     v_claimEventHandler(eventv_handler);
     v_enableVSync();    // enables vsync event
+
+    debug_init();
 
     atexit(quit); //register exit callback
 }
@@ -91,6 +106,8 @@ int main(int argc, char* argv[]){
     write_bank = 2;
     v_setDisplayBank(pending_bank);
 
+    last_vsync = vsync_count;
+
     // Main loop.
     while(!k_checkKeypress(KEY_ESCAPE)){
 
@@ -106,8 +123,16 @@ int main(int argc, char* argv[]){
         v_setWriteBank(write_bank);
         framebuffer = v_getScreenAddress();
 
+        vsync_delta = vsync_count - last_vsync;
+        last_vsync = vsync_count;
+
         // Clear screen
         memsetFast((u32*)framebuffer, 0, Screen_SizeBytes);
+
+        // Print some debug info.
+        char vsync_str[16];
+        sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
+        debug_plot_string_mode13(vsync_str);
 
         // Draw screen
         //plotSinCos();
@@ -131,3 +156,5 @@ int main(int argc, char* argv[]){
 
 	return 0;
 }
+
+INCBIN(debug_font, "data/lib/Spectrum.bin");

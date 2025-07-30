@@ -13,7 +13,7 @@ static int Permutation[512];
 
 static struct vec2 particles[NUM_PARTICLES];
 
-static u8* grid;
+static u8 grid[GRID_ROWS * GRID_COLS];
 
 void shuffle(int *arrayToShuffle) {
 	for(int e = 255; e > 0; e--) {
@@ -176,8 +176,6 @@ void updateGrid() {
 }
 
 void MakeGrid() {
-    grid = (u8*)malloc(GRID_ROWS * GRID_COLS);
-    
     // Init.
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
@@ -197,6 +195,4 @@ void MakeParticles() {
 }
 
 void KillGrid() {
-    free(grid);
-    grid = NULL;
 }
