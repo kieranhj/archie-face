@@ -2,16 +2,26 @@
 // Debug lib.
 // ============================================================================
 
-#include "archie/swi.h"
-
-#include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 #include "debug.h"
+#include "archie/swi.h"
+#include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 
 INCBIN_EXTERN(debug_font);
 
 #define Debug_MaxGlyphs 96
+#define Debug_MaxKeys   32
 
 static u8 debug_font_mode13[Debug_MaxGlyphs * 8 * 8];
+
+struct debug_key {
+    u8 key_code;
+    key_callback key_func;
+    u32 key_param1;
+    u32 key_param2;
+};
+
+static struct debug_key debug_key_list[Debug_MaxKeys];
+static int debug_num_keys = 0;
 
 void debug_init() {
     // Convert 1bpp debug font into MODE-appropriate data for fast copy.
@@ -66,4 +76,51 @@ void debug_write_vidc(u32 vidc_reg) {
                 :            // outputs
                 : "r"(vidc_reg)  // inputs 
                 : "r0", "r1", "cc"); // clobbers
+}
+
+void debug_register_key(u8 key_code, key_callback key_func, u32 key_param1, u32 key_param2) {
+    if (debug_num_keys < Debug_MaxKeys) {
+        debug_key_list[debug_num_keys].key_code = key_code;
+        debug_key_list[debug_num_keys].key_func = key_func;
+        debug_key_list[debug_num_keys].key_param1 = key_param1;
+        debug_key_list[debug_num_keys++].key_param2 = key_param2;
+    }
+}
+
+u32 debug_pressed_mask = 0;
+u32 debug_prev_mask = 0;
+
+// R1=0 key up or 1 key down
+// R2=internal key number (RMKey_*)
+void debug_handle_keypress(int key_up_or_down, u32 key_code) {
+    for(int i=0; i < debug_num_keys; i++) {
+        if (debug_key_list[i].key_code == key_code) {
+            if (key_up_or_down) {
+                debug_pressed_mask |= (1<<i);
+            } else {
+                debug_pressed_mask &= ~(1<<i);
+            }
+            break;
+        }
+    }
+}
+
+void debug_do_keypress_callbacks() {
+    u32 diff_bits = (debug_pressed_mask & ~debug_prev_mask) & debug_pressed_mask;
+    debug_prev_mask = debug_pressed_mask;
+
+    for(int i=0; i < debug_num_keys; i++) {
+        if (diff_bits & (1<<i)) {
+            (debug_key_list[i].key_func)(debug_key_list[i].key_param1, debug_key_list[i].key_param2);
+        }
+    }
+}
+
+void debug_toggle_byte(u32 addr, u32 val) {
+    (void)val;
+    *((u32*)addr) ^= 1;
+}
+
+void debug_set_byte(u32 addr, u32 val) {
+    *((u32*)addr) = val;
 }

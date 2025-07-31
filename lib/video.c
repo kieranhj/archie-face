@@ -2,8 +2,8 @@
 // Video lib (probably belongs in ArchieSDK.)
 // ============================================================================
 
-#include "archie/swi.h"
 #include "video.h"
+#include "archie/swi.h"
 
 #define DynArea_Screen 2
 
@@ -43,6 +43,24 @@ void v_releaseEventHandler(event_handler func) {
                 :            // outputs
                 : "r"(func)  // inputs 
                 : "r0", "r1", "r2", "cc"); // clobbers
+}
+
+void v_enableEvent(int event_no) {
+    asm volatile("mov r0, " swiToConst(OSByte_EventEnable) "\n"
+                 "mov r1, %0\n"
+                 "swi "swiToConst(OS_Byte)
+                :                       // outputs
+                : "r"(event_no)         // inputs
+                : "r0", "r1", "cc");    // clobbers
+}
+
+void v_disableEvent(int event_no) {
+    asm volatile("mov r0, " swiToConst(OSByte_EventDisable) "\n"
+                 "mov r1, %0\n"
+                 "swi "swiToConst(OS_Byte)
+                :                       // outputs
+                : "r"(event_no)         // inputs
+                : "r0", "r1", "cc");    // clobbers
 }
 
 u32 v_setScreenMemory(u32 new_size) {

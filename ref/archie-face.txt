@@ -7,7 +7,7 @@ What's missing to make this functional?
 FRAMEWORK:
 - Multiple source files - DONE
 - Build object files and link?
-- Including binary files in source, e.g. sine table. - STATED w/ debug font
+- Including binary files in source, e.g. sine table. - STARTED w/ debug font
 - Calling larger asm functions safely.
 - Ideally re-use existing archie-verse asm libs?
 
@@ -17,10 +17,10 @@ LOOP CONTROL:
 
 DEBUG:
 - Vsync counter / frame rate - STARTED
-- Raster timing
+- Raster timing - DONE
 - Debug key presses
 - Debug variables
-- Debug messages displayed to screen - STARTED
+- Debug messages displayed to screen - STARTED (NEEDS OPTIMISING)
 - printf to emulator log file (without slowdown) would be great! :)s
 
 LIBS:

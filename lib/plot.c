@@ -2,10 +2,10 @@
 // Plot functions.
 // ============================================================================
 
+#include "plot.h"
 #include <stdlib.h>
 #include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 #include "trig.h"
-#include "plot.h"
 
 void plotPoint(register int x, register int y, register u8 c) {
     if (x>=0 && x<320 && y>=0 && y<256) *(g_framebuffer + x + y*320) = c;

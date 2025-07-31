@@ -2,9 +2,9 @@
 // Flow field.
 // ============================================================================
 
+#include "flow-field.h"
 #include <stdlib.h>
 #include <math.h>
-#include "flow-field.h"
 #include "../lib/plot.h"
 #include "../lib/trig.h"
 #include "../lib/vector.h"

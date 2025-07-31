@@ -21,13 +21,13 @@ LIBS = -lm
 
 # Make sure to always append to CFLAGS with += instead of overwriting them
 # Add -g to interleave source with asm in compile.txt
-CFLAGS += -O2 -g
+CFLAGS += -O2 -g -fno-zero-initialized-in-bss
 
 all: build
 # Build program
 	$(ARCHIECC) $(CFLAGS) -obuild/$(APPNAME).elf $(SRCFILES) $(LIBFILES) $(LIBS) 
 # Get a human readable output of the assembly and symbols etc.
-	 $(ARCHIEOBJDUMP) -d -S -t build/$(APPNAME).elf > build/compile.txt
+	 $(ARCHIEOBJDUMP) -x -d -S -t build/$(APPNAME).elf > build/compile.txt
 # Extract final binary from ELF
 	$(ARCHIEOBJCOPY) -O binary build/$(APPNAME).elf build/$(APPNAME),ff8
 # Copy final binary to hostfs (modify config.mk to set your path)
