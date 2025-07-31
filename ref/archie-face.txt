@@ -10,6 +10,7 @@ FRAMEWORK:
 - Including binary files in source, e.g. sine table. - STARTED w/ debug font
 - Calling larger asm functions safely.
 - Ideally re-use existing archie-verse asm libs?
+- Clear BSS on init! - DONE
 
 LOOP CONTROL:
 - Vsync handler - DONE

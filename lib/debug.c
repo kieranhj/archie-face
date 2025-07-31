@@ -21,7 +21,7 @@ struct debug_key {
 };
 
 static struct debug_key debug_key_list[Debug_MaxKeys];
-static int debug_num_keys = 0;
+static int debug_num_keys;
 
 void debug_init() {
     // Convert 1bpp debug font into MODE-appropriate data for fast copy.

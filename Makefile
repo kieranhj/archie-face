@@ -21,7 +21,8 @@ LIBS = -lm
 
 # Make sure to always append to CFLAGS with += instead of overwriting them
 # Add -g to interleave source with asm in compile.txt
-CFLAGS += -O2 -g -fno-zero-initialized-in-bss
+# -fno-zero-initialized-in-bss was a workaround for BSS not being initialise to zero.
+CFLAGS += -O2 -g
 
 all: build
 # Build program

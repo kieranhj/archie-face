@@ -9,6 +9,7 @@
 // C libraries.
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 // ArchieSDK libraries.
@@ -60,7 +61,7 @@ void eventv_handler(int event_no, int event_param1, int event_param2, int event_
     }
 }
 
-void quit(){
+void quit() {
     v_setDisplayBank(write_bank);
     v_setWriteBank(write_bank);
 
@@ -71,19 +72,30 @@ void quit(){
     v_waitForVSync();
 }
 
-void init(){ 
+void init() {
+    // Need to init BSS section.
+
+	extern char __bss_start__[];
+	extern char __bss_end__[];
+
+	memset(__bss_start__, 0, (__bss_end__ - __bss_start__));
+
+    // Screen stuffs.
     v_setMode(Screen_Mode);
     u32 screen_ram = v_setScreenMemory(Screen_SizeTotal);
     assert(screen_ram >= Screen_SizeTotal);
-
     v_disableTextCursor();
+
+    // Events.
     v_claimEventHandler(eventv_handler);
     v_enableEvent(Event_VSync);
     v_enableEvent(Event_KeyPressed);
 
+    // Debug.
     debug_init();
 
-    atexit(quit); //register exit callback
+    // Register exit callback.
+    atexit(quit);
 }
 
 int main(int argc, char* argv[]){
