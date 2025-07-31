@@ -11,7 +11,7 @@
 
 static int Permutation[512];
 
-static struct vec2 particles[NUM_PARTICLES];
+static vec2fp particles[NUM_PARTICLES];
 
 static u8 grid[GRID_ROWS * GRID_COLS];
 
@@ -37,11 +37,11 @@ void MakePermutation() {
     }
 }
 
-struct vec2 GetConstantVector(int v) {
-    struct vec2 vec0 = {1.0f, 1.0f};
-    struct vec2 vec1 = {-1.0f, 1.0f};
-    struct vec2 vec2 = {-1.0f, -1.0f};
-    struct vec2 vec3 = {1.0f, -1.0f};
+vec2f GetConstantVector(int v) {
+    vec2f vec0 = {1.0f, 1.0f};
+    vec2f vec1 = {-1.0f, 1.0f};
+    vec2f vec2 = {-1.0f, -1.0f};
+    vec2f vec3 = {1.0f, -1.0f};
 
 	// v is the value from the permutation table
 	int h = v & 3;
@@ -70,10 +70,10 @@ float Noise2D(float x, float y) {
 	float xf = x-floorf(x);
 	float yf = y-floorf(y);
 
-	struct vec2 topRight = {xf-1.0f, yf-1.0f};
-	struct vec2 topLeft = {xf, yf-1.0f};
-	struct vec2 bottomRight = {xf-1.0f, yf};
-	struct vec2 bottomLeft = {xf, yf};
+	vec2f topRight = {xf-1.0f, yf-1.0f};
+	vec2f topLeft = {xf, yf-1.0f};
+	vec2f bottomRight = {xf-1.0f, yf};
+	vec2f bottomLeft = {xf, yf};
 
 	// Select a value from the permutation array for each of the 4 corners
 	int valueTopRight = Permutation[Permutation[X+1]+Y+1];
@@ -142,26 +142,27 @@ void plotCurve(int x0, int y0, int num_steps, int col) {
 
 void plotParticles() {
     for(int i = 0; i < NUM_PARTICLES; i++) {
-       plotPoint((int)particles[i].x, (int)particles[i].y, 64 + (i>>2));
+       plotPoint(FP_TO_INT(particles[i].x), FP_TO_INT(particles[i].y), 64 + (i>>2));
     }
 }
 
 void moveParticles() {
     for(int i = 0; i < NUM_PARTICLES; i++) {
-        int col_idx = (int)particles[i].x / GRID_STEPX;
-        int row_idx = (int)particles[i].y / GRID_STEPY;
+        int col_idx = FP_TO_INT(particles[i].x) / GRID_STEPX;
+        int row_idx = FP_TO_INT(particles[i].y) / GRID_STEPY;
 
         if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS) {
             int a = grid[row_idx*GRID_COLS + col_idx];
-            int dx = (cosLookupTable[a] >> 5);
-            int dy = (sineLookupTable[a] >> 5);
 
-            particles[i].x += dx;
-            particles[i].y += dy;
+            int dx = cosLookupTable[a];     // [-128,127]   [s0.7]
+            int dy = sineLookupTable[a];    // [-128,127]   [s0.7]
+
+            particles[i].x += dx << (16-7);
+            particles[i].y += dy << (16-7);
         }
         else {
-            particles[i].x = randomBetween(0,319);
-            particles[i].y = randomBetween(0,255);
+            particles[i].x = FLOAT_TO_FP(randomBetween(0,319));
+            particles[i].y = FLOAT_TO_FP(randomBetween(0,255));
         }
     }
 }
@@ -189,8 +190,8 @@ void MakeGrid() {
 
 void MakeParticles() {
     for(int i = 0; i < NUM_PARTICLES; i++) {
-        struct vec2 p = {randomBetween(0,319), randomBetween(0,255)};
-        particles[i] = p;
+        particles[i].x = FLOAT_TO_FP(randomBetween(0,319));
+        particles[i].y = FLOAT_TO_FP(randomBetween(0,255));
     }
 }
 

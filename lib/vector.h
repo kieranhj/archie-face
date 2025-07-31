@@ -7,11 +7,18 @@
 
 #include "archie/SDKTypes.h"
 
-struct vec2 {
-    float x, y;
-};
+#define FLOAT_TO_FP(val)    (int)((val)*(1<<16))
+#define FP_TO_INT(val)      ((val)>>16)
 
-inline float dot(struct vec2 a, struct vec2 b) {
+typedef struct vec2f_s {
+    float x, y;
+} vec2f;
+
+typedef struct vec2fp_s {
+    int x, y;
+} vec2fp;
+
+inline float dot(vec2f a, vec2f b) {
     return a.x * b.x + a.y * b.y;
 }
 

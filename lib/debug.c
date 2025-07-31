@@ -11,8 +11,6 @@ INCBIN_EXTERN(debug_font);
 #define Debug_MaxGlyphs 96
 #define Debug_MaxKeys   32
 
-static u8 debug_font_mode13[Debug_MaxGlyphs * 8 * 8];
-
 struct debug_key {
     u8 key_code;
     key_callback key_func;
@@ -20,8 +18,13 @@ struct debug_key {
     u32 key_param2;
 };
 
-static struct debug_key debug_key_list[Debug_MaxKeys];
+static u8 debug_font_mode13[Debug_MaxGlyphs * 8 * 8];
+
+static u32 debug_pressed_mask = 0;
+static u32 debug_prev_mask = 0;
+
 static int debug_num_keys;
+static struct debug_key debug_key_list[Debug_MaxKeys];
 
 void debug_init() {
     // Convert 1bpp debug font into MODE-appropriate data for fast copy.
@@ -86,9 +89,6 @@ void debug_register_key(u8 key_code, key_callback key_func, u32 key_param1, u32 
         debug_key_list[debug_num_keys++].key_param2 = key_param2;
     }
 }
-
-u32 debug_pressed_mask = 0;
-u32 debug_prev_mask = 0;
 
 // R1=0 key up or 1 key down
 // R2=internal key number (RMKey_*)
