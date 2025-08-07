@@ -28,8 +28,6 @@
 // App modules.
 #include "src/flow-field.h"
 
-// TODO: BSS section isn't zero'd on app init... :S
-
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
 volatile int pending_bank = 0;          // updated during interrupt!
@@ -43,6 +41,10 @@ static u32 debug_display = 1;
 static u32 debug_do_tick = 1;
 static u32 debug_step = 0;
 u32 debug_rasters = 1;
+
+static int frame_count = 0;
+static int debug_frame_rate;
+static int vsyncs_since_last_count ;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
     // TODO: Probably want to preserve all registers used in the event handler?
@@ -74,7 +76,6 @@ void quit() {
 
 void init() {
     // Need to init BSS section.
-
 	extern char __bss_start__[];
 	extern char __bss_end__[];
 
@@ -138,11 +139,17 @@ int main(int argc, char* argv[]){
             // Tick
             updateGrid();
             moveParticles();
+
+            // Frame rate
+            frame_count++;
+
+            if ((frame_count % 32) == 0) {
+                debug_frame_rate = 50 * 32 / (vsync_count - vsyncs_since_last_count);
+                vsyncs_since_last_count = vsync_count;
+            }
         }
 
-        // Vsync
-        // v_waitForVSync();
-
+        // Vsync - formerly v_waitForVSync();
         if (++write_bank > Screen_Banks) write_bank=1;      // get next bank for writing.
         while (write_bank == displayed_bank) {}         // block here if we're trying to write to the currently displayed bank.
         v_setWriteBank(write_bank);
@@ -174,7 +181,7 @@ int main(int argc, char* argv[]){
         if (debug_display) {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-            sprintf(vsync_str, "%d", vsync_delta);
+            sprintf(vsync_str, "%d", debug_frame_rate);
             debug_plot_string_mode13(vsync_str);
         }
 
