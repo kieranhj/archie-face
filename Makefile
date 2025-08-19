@@ -11,7 +11,7 @@ ARCHIEOBJDUMP=$(ARCHIESDK)/tools/bin/arm-archie-objdump
 # Your program's name
 APPNAME = grid
 
-LIBFILES = lib/debug.c lib/mem.c lib/plot.c lib/trig.c lib/video.c
+LIBFILES = lib/debug.c lib/mem.c lib/mouse.c lib/plot.c lib/trig.c lib/video.c
 
 # Your source files (.c or .s)
 SRCFILES = main.c src/flow-field.c

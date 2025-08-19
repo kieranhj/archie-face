@@ -124,3 +124,7 @@ void debug_toggle_byte(u32 addr, u32 val) {
 void debug_set_byte(u32 addr, u32 val) {
     *((u32*)addr) = val;
 }
+
+void debug_add_byte(u32 addr, u32 val) {
+    *((int*)addr) += (int)val;
+}

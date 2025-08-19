@@ -12,9 +12,12 @@
 #define GRID_OFFX       (GRID_STEPX/2)
 #define GRID_OFFY       (GRID_STEPY/2)
 
-#define NUM_PARTICLES   512
+#define MAX_PARTICLES   1024
 
-void MakeGrid();
+extern int num_particles;
+
+void MakeNoiseGrid();
+void MakeZeroGrid();
 void MakePermutation();
 void drawGrid();
 void updateGrid();
@@ -23,5 +26,8 @@ void plotParticles();
 void moveParticles();
 void MakeParticles();
 void KillGrid();
+
+void gridAddAttractor(int x, int y);
+void gridAddNode(int x, int y);
 
 #endif // __FLOW_FIELD_H__

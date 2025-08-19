@@ -11,6 +11,7 @@ FRAMEWORK:
 - Calling larger asm functions safely.
 - Ideally re-use existing archie-verse asm libs?
 - Clear BSS on init! - DONE
+- Settle on types (int32_t vs i32 vs something else?) - what to use for FP?
 
 LOOP CONTROL:
 - Vsync handler - DONE
@@ -19,8 +20,8 @@ LOOP CONTROL:
 DEBUG:
 - Vsync counter / frame rate - STARTED
 - Raster timing - DONE
-- Debug key presses
-- Debug variables
+- Debug key presses - DONE
+- Debug variables - DONE
 - Debug messages displayed to screen - STARTED (NEEDS OPTIMISING)
 - printf to emulator log file (without slowdown) would be great! :)s
 
@@ -31,8 +32,8 @@ LIBS:
 - Random etc.
 
 FIXED-POINT MATHS:
-- Macros
-- Sine & cosine tables + generation
+- Macros - DONE
+- Sine & cosine tables + generation - DONE
 - Vector lib
 - Matrix lib
 
@@ -41,3 +42,12 @@ DRAWING:
 - Lines - STARTED
 - Triangles
 - Circles
+
+
+Make a PC build!
+=> At some point create a bare-bones Archie API and implement a PC window port (using GLEW?)
+- Video / screen mode
+- Clear screen etc.
+- Plotting points etc.
+- Plotting text / debug etc.
+- Keyboard / mouse input

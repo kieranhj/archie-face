@@ -4,6 +4,7 @@
 
 #include "plot.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 #include "trig.h"
 
@@ -14,8 +15,14 @@ void plotPoint(register int x, register int y, register u8 c) {
 void plotSinCos() {
     for (int i=0; i < 256; i++) {
         // NB. tables are upside down because the screen is 0 at the top...
-        plotPoint(i, 128+cosLookupTable[i], 255);
-        plotPoint(i, 128+sineLookupTable[i], 64);
+        //plotPoint(i, 128+cosLookupTable[i], 255);
+        //plotPoint(i, 128+sineLookupTable[i], 64);
+
+        int32_t c=cos_fp(i<<16);
+        int32_t s=sin_fp(i<<16);
+
+        plotPoint(i, 128+(c>>9), 255);
+        plotPoint(i, 128+(s>>9), 64);
     }
 }
 

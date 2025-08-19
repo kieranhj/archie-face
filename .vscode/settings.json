@@ -2,6 +2,9 @@
     "files.associations": {
         "ctype.h": "c",
         "corecrt_wctype.h": "c",
-        "flow-field.h": "c"
+        "flow-field.h": "c",
+        "plot.h": "c",
+        "math.h": "c",
+        "corecrt_math_defines.h": "c"
     }
 }

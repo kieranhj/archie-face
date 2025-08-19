@@ -20,5 +20,6 @@ void debug_handle_keypress(int key_up_or_down, u32 key_code);
 void debug_do_keypress_callbacks();
 void debug_toggle_byte(u32 addr, u32 val);
 void debug_set_byte(u32 addr, u32 val);
+void debug_add_byte(u32 addr, u32 val);
 
 #endif // __DEBUG_H__

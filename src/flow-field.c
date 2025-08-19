@@ -11,9 +11,11 @@
 
 static int Permutation[512];
 
-static vec2fp particles[NUM_PARTICLES];
+static vec2fp particles[MAX_PARTICLES];
 
-static u8 grid[GRID_ROWS * GRID_COLS];
+int num_particles = MAX_PARTICLES / 2;
+
+static int grid[GRID_ROWS * GRID_COLS];
 
 void shuffle(int *arrayToShuffle) {
 	for(int e = 255; e > 0; e--) {
@@ -113,9 +115,9 @@ void drawGridDirs() {
             int a = grid[j*GRID_COLS + i];
             int x0 = GRID_OFFX + i*GRID_STEPX;
             int y0 = GRID_OFFY + j*GRID_STEPY;
-            int dx = cosLookupTable[a];
-            int dy = sineLookupTable[a];
-            plotLine(x0, y0, x0 + (dx>>5), y0 + (dy>>5), 255);
+            int dx = cos_fp(a) >> 14;
+            int dy = sin_fp(a) >> 14;
+            plotLine(x0, y0, x0 + dx, y0 + dy, 255);
         }
     }
 }
@@ -127,8 +129,8 @@ void plotCurve(int x0, int y0, int num_steps, int col) {
 
         if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS) {
             int a = grid[row_idx*GRID_COLS + col_idx];
-            int dx = (cosLookupTable[a] >> 5);
-            int dy = (sineLookupTable[a] >> 5);
+            int dx = cos_fp(a) >> 14;
+            int dy = sin_fp(a) >> 14;
             int x1 = x0 + dx;
             int y1 = y0 + dy;
 
@@ -141,24 +143,24 @@ void plotCurve(int x0, int y0, int num_steps, int col) {
 }
 
 void plotParticles() {
-    for(int i = 0; i < NUM_PARTICLES; i++) {
+    for(int i = 0; i < num_particles; i++) {
        plotPoint(FP_TO_INT(particles[i].x), FP_TO_INT(particles[i].y), 64 + (i>>2));
     }
 }
 
 void moveParticles() {
-    for(int i = 0; i < NUM_PARTICLES; i++) {
+    for(int i = 0; i < num_particles; i++) {
         int col_idx = FP_TO_INT(particles[i].x) / GRID_STEPX;
         int row_idx = FP_TO_INT(particles[i].y) / GRID_STEPY;
 
         if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS) {
             int a = grid[row_idx*GRID_COLS + col_idx];
 
-            int dx = cosLookupTable[a];     // [-128,127]   [s0.7]
-            int dy = sineLookupTable[a];    // [-128,127]   [s0.7]
+            int dx = cos_fp(a);             // [-1.0, 1.0]  [s1.16]
+            int dy = sin_fp(a);             // [-1.0, 1.0]  [s1.16]
 
-            particles[i].x += dx << (16-7);
-            particles[i].y += dy << (16-7);
+            particles[i].x += dx;
+            particles[i].y += dy;
         }
         else {
             particles[i].x = FLOAT_TO_FP(randomBetween(0,319));
@@ -171,29 +173,99 @@ void updateGrid() {
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
             int a = grid[j*GRID_COLS + i];
-            grid[j*GRID_COLS + i] = (a + 1) & 255;
+            grid[j*GRID_COLS + i] = (a + (1<<16)) & (255<<16);
         }
     }
 }
 
-void MakeGrid() {
+void MakeZeroGrid() {
     // Init.
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
             //grid[j*GRID_COLS + i] = 256 * j / GRID_ROWS;            // default angle.
+            grid[j*GRID_COLS + i] = FLOAT_TO_FP(32);
+        }
+    }
+}
+
+void MakeNoiseGrid() {
+    // Init.
+    MakePermutation();
+    for(int i = 0; i < GRID_COLS; i++) {
+        for(int j = 0; j < GRID_ROWS; j++) {
             float n = Noise2D(i * 0.1f, j * 0.1f);
             n = (n + 1.0f) * 0.5f;
-            grid[j*GRID_COLS + i] = (int)(255*n);
+            grid[j*GRID_COLS + i] = FLOAT_TO_FP(256*n);
         }
     }
 }
 
 void MakeParticles() {
-    for(int i = 0; i < NUM_PARTICLES; i++) {
+    for(int i = 0; i < MAX_PARTICLES; i++) {
         particles[i].x = FLOAT_TO_FP(randomBetween(0,319));
         particles[i].y = FLOAT_TO_FP(randomBetween(0,255));
     }
 }
 
 void KillGrid() {
+}
+
+void gridAddAttractor(int x, int y) {
+    // Make grid points in radius R point towards (x,y)
+    float r2 = 50.0f * 50.0f;
+
+    for(int i = 0; i < GRID_COLS; i++) {
+        for(int j = 0; j < GRID_ROWS; j++) {
+            // Grid point.
+            int gx = i * GRID_STEPX;
+            int gy = j * GRID_STEPY;
+
+            // Delta from grid point to our point.
+            int dx = x-gx;
+            int dy = y-gy;
+
+            float d2 = dx * dx + dy * dy;
+
+            if (d2 <= r2) {
+                // Bend grid angle towards the point.
+
+                float f = 1.0f;//1.0f - dist/r;                // f=1.0 at 0 and f=0.0 at r.
+                float a = atan2f(dy, dx)/(2.0f*M_PI);          // vec from grid point to target (-0.5f, 0.5f]
+
+                //if (a<0.0f) a=1.0f+a;
+
+                grid[j*GRID_COLS + i] = FLOAT_TO_FP(256*a*f);
+            }
+        }
+    }
+}
+
+void gridAddNode(int x, int y) {
+    // Make grid points within radius R move around (x,y)
+    float r2 = 50.0f * 50.0f;
+
+    for(int i = 0; i < GRID_COLS; i++) {
+        for(int j = 0; j < GRID_ROWS; j++) {
+            // Grid point.
+            int gx = i * GRID_STEPX;
+            int gy = j * GRID_STEPY;
+
+            // Delta from grid point to our point.
+            int dx = x-gx;
+            int dy = y-gy;
+
+            float d2 = dx * dx + dy * dy;
+
+            if (d2 <= r2) {
+                // Bend grid angle towards the point.
+
+                float f = 1.0f;//1.0f - dist/r;                // f=1.0 at 0 and f=0.0 at r.
+                float a = atan2f(dx, -dy)/(2*M_PI);  // angle to point.
+
+                //if (a<0.0f) a=1.0f+a;
+
+                grid[j*GRID_COLS + i] = FLOAT_TO_FP(256*a*f);
+            }
+        }
+    }
 }

@@ -1,17 +1,12 @@
 // ============================================================================
-// Trig lib.
+// Mouse
 // ============================================================================
 
-#ifndef __TRIG_H__
-#define __TRIG_H__
+#ifndef __MOUSE_H__
+#define __MOUSE_H__
 
 #include "archie/SDKTypes.h"
 
-#define SINUS_TABLE_ENTRIES 8192
-
-void MakeSinus();
-
-int sin_fp(int32_t brad);
-int cos_fp(int32_t brad);
+void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons);
 
 #endif

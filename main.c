@@ -20,6 +20,7 @@
 // My libraries. :)
 #include "lib/debug.h"
 #include "lib/mem.h"
+#include "lib/mouse.h"
 #include "lib/plot.h"
 #include "lib/trig.h"
 #include "lib/video.h"
@@ -41,6 +42,8 @@ static u32 debug_display = 1;
 static u32 debug_do_tick = 1;
 static u32 debug_step = 0;
 u32 debug_rasters = 1;
+static u32 debug_grid = 0;
+static u32 debug_update = 0;
 
 static int frame_count = 0;
 static int debug_frame_rate;
@@ -106,16 +109,28 @@ int main(int argc, char* argv[]){
 
     // App init.
     init();
+    // NB. init() wipes BSS so can't init static vars before this!!
+
+    // Lookup tables.
+    printf("Init...");
+    MakeSinus();
 
     // Debug init.
     debug_register_key(RMKey_D, debug_toggle_byte, (u32)&debug_display, 0);
     debug_register_key(RMKey_R, debug_toggle_byte, (u32)&debug_rasters, 0);
     debug_register_key(RMKey_S, debug_set_byte, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_byte, (u32)&debug_do_tick, 0);
+    debug_register_key(RMKey_M, MakeParticles, 0, 0);
+    debug_register_key(RMKey_N, MakeNoiseGrid, 0, 0);
+    debug_register_key(RMKey_Z, MakeZeroGrid, 0, 0);
+    debug_register_key(RMKey_G, debug_toggle_byte, (u32)&debug_grid, 0);
+    debug_register_key(RMKey_U, debug_toggle_byte, (u32)&debug_update, 0);
+    debug_register_key(RMKey_ArrowUp, debug_add_byte, (u32)&num_particles, 10);
+    debug_register_key(RMKey_ArrowDown, debug_add_byte, (u32)&num_particles, -10);
 
     // Flow field init.
-    MakePermutation();
-    MakeGrid();
+    //MakeNoiseGrid();
+    MakeZeroGrid();
     MakeParticles();
 
     // Triple screen buffering.
@@ -126,18 +141,35 @@ int main(int argc, char* argv[]){
 
     last_vsync = vsync_count;
 
+    // ===============================
     // Main loop.
+    // ===============================
     while(!k_checkKeypress(KEY_ESCAPE)){
 
         debug_do_keypress_callbacks();
 
+        int mx, my;
+        u8 mb;
+        mouseRead(&mx, &my, &mb);
+
+        if (mb&4) {
+            gridAddAttractor(mx, my);
+        }
+        if (mb&1) {
+            gridAddNode(mx, my);
+        }
+
+        
         SET_BORDER(0x000f);
 
+        // ===============================
+        // Tick
+        // ===============================
         if (debug_do_tick || debug_step) {
             debug_step = 0;
 
-            // Tick
-            updateGrid();
+            if (debug_update) updateGrid();
+
             moveParticles();
 
             // Frame rate
@@ -149,7 +181,10 @@ int main(int argc, char* argv[]){
             }
         }
 
+        // ===============================
         // Vsync - formerly v_waitForVSync();
+        // ===============================
+
         if (++write_bank > Screen_Banks) write_bank=1;      // get next bank for writing.
         while (write_bank == displayed_bank) {}         // block here if we're trying to write to the currently displayed bank.
         v_setWriteBank(write_bank);
@@ -158,16 +193,20 @@ int main(int argc, char* argv[]){
         vsync_delta = vsync_count - last_vsync;
         last_vsync = vsync_count;
 
-        SET_BORDER(0x0f00);
+        // ===============================
+        // Draw
+        // ===============================
 
         // Clear screen
+        SET_BORDER(0x0f00);
         memsetFast((u32*)g_framebuffer, 0, Screen_SizeBytes);
 
+        // Draw screen
         SET_BORDER(0x00f0);
 
-        // Draw screen
         //plotSinCos();
-        //drawGridDirs();
+
+        if (debug_grid) drawGridDirs();
 
         //for(int i=0; i < 100; i++) {
         //    plotCurve(randomBetween(0,319), randomBetween(0,255), 32, 64+i);
@@ -175,15 +214,17 @@ int main(int argc, char* argv[]){
 
         plotParticles();
 
+        // Print some debug info.
         SET_BORDER(0x0fff);
 
-        // Print some debug info.
         if (debug_display) {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-            sprintf(vsync_str, "%d", debug_frame_rate);
+            sprintf(vsync_str, "%d %x %d", debug_frame_rate, mb, num_particles);
             debug_plot_string_mode13(vsync_str);
         }
+
+        plotPoint(mx, my, 255);
 
         SET_BORDER(0x0000);
 

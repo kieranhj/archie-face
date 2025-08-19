@@ -6,6 +6,7 @@
 #define __VECTOR_H__
 
 #include "archie/SDKTypes.h"
+#include <stdlib.h>
 
 #define FLOAT_TO_FP(val)    (int)((val)*(1<<16))
 #define FP_TO_INT(val)      ((val)>>16)
