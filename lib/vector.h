@@ -10,6 +10,7 @@
 
 #define FLOAT_TO_FP(val)    (int)((val)*(1<<16))
 #define FP_TO_INT(val)      ((val)>>16)
+#define FP_TO_FLOAT(val)    ((float)(val)/65536.0f)
 
 typedef struct vec2f_s {
     float x, y;

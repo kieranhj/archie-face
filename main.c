@@ -102,10 +102,31 @@ void init() {
     atexit(quit);
 }
 
+#include <math.h>
+
 int main(int argc, char* argv[]){
     // Unused params.
     (void)argc;
     (void)argv;
+
+    #if 0
+    for(int a=0; a<256; a+=1) {
+        int r=5;
+        float dx=cosf(a*M_PI/128.0f)*5.0f;
+        float dy=sinf(a*M_PI/128.0f)*2.0f;
+        float at2=atan2f(dy,dx);
+        float fat2=FastArcTan2(dy,dx);
+        float a2=fat2/(2.0f*M_PI);
+        if (a2<0.0f) a2=1.0f+a2;
+        a2*=256;
+        printf("a=%d (%f,%f) at2=%f fat=%f a2=%d\n\r",a,dx,dy,at2,fat2,(int)a2);
+    }
+    printf("atan2f(5.0,0.0)=%f\n\r",atan2f(0.0f,5.0f));
+    printf("atan2f(0.0,2.0)=%f\n\r",atan2f(2.0f,0.0f));
+    printf("atan2f(-5.0,0.0)=%f\n\r",atan2f(0.0f,-5.0f));
+    printf("atan2f(0.0,-2.0)=%f\n\r",atan2f(-2.0f,0.0f));
+    return 0;
+    #endif
 
     // App init.
     init();

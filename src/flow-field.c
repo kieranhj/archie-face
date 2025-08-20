@@ -212,7 +212,8 @@ void KillGrid() {
 
 void gridAddAttractor(int x, int y) {
     // Make grid points in radius R point towards (x,y)
-    float r2 = 50.0f * 50.0f;
+    float r = 50.0f;
+    float r2 = r*r;
 
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
@@ -229,10 +230,10 @@ void gridAddAttractor(int x, int y) {
             if (d2 <= r2) {
                 // Bend grid angle towards the point.
 
-                float f = 1.0f;//1.0f - dist/r;                // f=1.0 at 0 and f=0.0 at r.
-                float a = atan2f(dy, dx)/(2.0f*M_PI);          // vec from grid point to target (-0.5f, 0.5f]
+                float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
+                float a = FastArcTan2(dy, dx)/(2.0f*M_PI);          // vec from grid point to target (-0.5f, 0.5f]
 
-                //if (a<0.0f) a=1.0f+a;
+                if (a<0.0f) a=1.0f+a;
 
                 grid[j*GRID_COLS + i] = FLOAT_TO_FP(256*a*f);
             }
@@ -242,7 +243,8 @@ void gridAddAttractor(int x, int y) {
 
 void gridAddNode(int x, int y) {
     // Make grid points within radius R move around (x,y)
-    float r2 = 50.0f * 50.0f;
+    float r = 50.0f;
+    float r2 = r*r;
 
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
@@ -259,10 +261,10 @@ void gridAddNode(int x, int y) {
             if (d2 <= r2) {
                 // Bend grid angle towards the point.
 
-                float f = 1.0f;//1.0f - dist/r;                // f=1.0 at 0 and f=0.0 at r.
-                float a = atan2f(dx, -dy)/(2*M_PI);  // angle to point.
+                float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
+                float a = FastArcTan2(dx, -dy)/(2*M_PI);  // angle to point.
 
-                //if (a<0.0f) a=1.0f+a;
+                if (a<0.0f) a=1.0f+a;
 
                 grid[j*GRID_COLS + i] = FLOAT_TO_FP(256*a*f);
             }

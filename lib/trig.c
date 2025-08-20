@@ -33,3 +33,35 @@ int sin_fp(int32_t brad) {
 int cos_fp(int32_t brad) {
     return sinusTable[((brad + FLOAT_TO_FP(64)) >> 11) & (SINUS_TABLE_ENTRIES-1)];
 }
+
+float FastArcTan2(float y, float x) {
+	if (x >= 0) { // -pi/2 .. pi/2
+		if (y >= 0) { // 0 .. pi/2
+			if (y < x) { // 0 .. pi/4
+				return atanf(y / x);
+			} else { // pi/4 .. pi/2
+				return M_PI_2 - atanf(x / y);
+			}
+		} else {
+			if (-y < x) { // -pi/4 .. 0
+				return atanf(y / x);
+			} else { // -pi/2 .. -pi/4
+				return -M_PI_2 - atanf(x / y);
+			}
+		}
+	} else { // -pi..-pi/2, pi/2..pi
+		if (y >= 0) { // pi/2 .. pi
+			if (y < -x) { // pi*3/4 .. pi
+				return atanf(y / x) + M_PI;
+			} else { // pi/2 .. pi*3/4
+				return M_PI_2 - atanf(x / y);
+			}
+		} else { // -pi .. -pi/2
+			if (-y < -x) { // -pi .. -pi*3/4
+				return atanf(y / x) - M_PI;
+			} else { // -pi*3/4 .. -pi/2
+				return -M_PI_2 - atanf(x / y);
+			}
+		}
+	}
+}
