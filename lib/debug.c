@@ -116,15 +116,15 @@ void debug_do_keypress_callbacks() {
     }
 }
 
-void debug_toggle_byte(u32 addr, u32 val) {
+void debug_toggle_word(u32 addr, u32 val) {
     (void)val;
     *((u32*)addr) ^= 1;
 }
 
-void debug_set_byte(u32 addr, u32 val) {
+void debug_set_word(u32 addr, u32 val) {
     *((u32*)addr) = val;
 }
 
-void debug_add_byte(u32 addr, u32 val) {
+void debug_word_add(u32 addr, u32 val) {
     *((int*)addr) += (int)val;
 }

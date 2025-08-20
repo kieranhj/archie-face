@@ -241,9 +241,11 @@ void gridAddAttractor(int x, int y) {
     }
 }
 
-void gridAddNode(int x, int y) {
+extern u32 vortex_radius;
+
+void gridAddNode(int x, int y, int fx, int fy) {
     // Make grid points within radius R move around (x,y)
-    float r = 50.0f;
+    float r = vortex_radius;
     float r2 = r*r;
 
     for(int i = 0; i < GRID_COLS; i++) {
@@ -262,7 +264,8 @@ void gridAddNode(int x, int y) {
                 // Bend grid angle towards the point.
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
-                float a = FastArcTan2(dx, -dy)/(2*M_PI);  // angle to point.
+                                                            // for this to work would need to compute the angle delta.
+                float a = FastArcTan2(fx*dx, fy*dy)/(2*M_PI);  // angle to point.
 
                 if (a<0.0f) a=1.0f+a;
 

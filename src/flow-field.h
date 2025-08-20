@@ -28,6 +28,6 @@ void MakeParticles();
 void KillGrid();
 
 void gridAddAttractor(int x, int y);
-void gridAddNode(int x, int y);
+void gridAddNode(int x, int y, int fx, int fy);
 
 #endif // __FLOW_FIELD_H__

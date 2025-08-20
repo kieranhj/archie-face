@@ -65,3 +65,28 @@ float FastArcTan2(float y, float x) {
 		}
 	}
 }
+
+#if 0
+void ArcTanTest() {
+    for(int a=0; a<256; a+=8) {
+        int r=10;
+        float dx=cosf(a*M_PI/128.0f)*r;
+        float dy=sinf(a*M_PI/128.0f)*r;
+        float at2=atan2f(dy,dx);
+        float a2=at2/4.0f;
+        float fat2=FastArcTan2(dy,dx);
+        //float a2=fat2/(2.0f*M_PI);
+        //if (a2<0.0f) a2=1.0f+a2;
+        a2*=256;
+        printf("a=%d (%f,%f) at2=%f fat=%f a2=%d\n\r",a,dx,dy,at2,fat2,(int)a2);
+    }
+    int a=0.0f,b=5.0f;
+    printf("atan2f(5.0,0.0)=%f\n\r",atan2f(a,b));
+    a=2.0f;b=0.0f;
+    printf("atan2f(0.0,2.0)=%f\n\r",atan2f(a,b));
+    a=0.0f;b=-5.0f;
+    printf("atan2f(-5.0,0.0)=%f\n\r",atan2f(a,b));
+    a=-2.0f;b=0.0f;
+    printf("atan2f(0.0,-2.0)=%f\n\r",atan2f(a,b));
+}
+#endif

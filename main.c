@@ -47,7 +47,11 @@ static u32 debug_update = 0;
 
 static int frame_count = 0;
 static int debug_frame_rate;
-static int vsyncs_since_last_count ;
+static int vsyncs_since_last_count;
+
+static int mouseX;
+static int mouseY;
+u32 vortex_radius = 50;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
     // TODO: Probably want to preserve all registers used in the event handler?
@@ -102,31 +106,14 @@ void init() {
     atexit(quit);
 }
 
-#include <math.h>
+void MakeVortex(u32 param1, u32 param2) {
+    gridAddNode(mouseX, mouseY, param1, param2);
+}
 
 int main(int argc, char* argv[]){
     // Unused params.
     (void)argc;
     (void)argv;
-
-    #if 0
-    for(int a=0; a<256; a+=1) {
-        int r=5;
-        float dx=cosf(a*M_PI/128.0f)*5.0f;
-        float dy=sinf(a*M_PI/128.0f)*2.0f;
-        float at2=atan2f(dy,dx);
-        float fat2=FastArcTan2(dy,dx);
-        float a2=fat2/(2.0f*M_PI);
-        if (a2<0.0f) a2=1.0f+a2;
-        a2*=256;
-        printf("a=%d (%f,%f) at2=%f fat=%f a2=%d\n\r",a,dx,dy,at2,fat2,(int)a2);
-    }
-    printf("atan2f(5.0,0.0)=%f\n\r",atan2f(0.0f,5.0f));
-    printf("atan2f(0.0,2.0)=%f\n\r",atan2f(2.0f,0.0f));
-    printf("atan2f(-5.0,0.0)=%f\n\r",atan2f(0.0f,-5.0f));
-    printf("atan2f(0.0,-2.0)=%f\n\r",atan2f(-2.0f,0.0f));
-    return 0;
-    #endif
 
     // App init.
     init();
@@ -137,17 +124,28 @@ int main(int argc, char* argv[]){
     MakeSinus();
 
     // Debug init.
-    debug_register_key(RMKey_D, debug_toggle_byte, (u32)&debug_display, 0);
-    debug_register_key(RMKey_R, debug_toggle_byte, (u32)&debug_rasters, 0);
-    debug_register_key(RMKey_S, debug_set_byte, (u32)&debug_step, 1);
-    debug_register_key(RMKey_Space, debug_toggle_byte, (u32)&debug_do_tick, 0);
+    debug_register_key(RMKey_D, debug_toggle_word, (u32)&debug_display, 0);
+    debug_register_key(RMKey_R, debug_toggle_word, (u32)&debug_rasters, 0);
+    debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
+    debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
     debug_register_key(RMKey_M, MakeParticles, 0, 0);
     debug_register_key(RMKey_N, MakeNoiseGrid, 0, 0);
     debug_register_key(RMKey_Z, MakeZeroGrid, 0, 0);
-    debug_register_key(RMKey_G, debug_toggle_byte, (u32)&debug_grid, 0);
-    debug_register_key(RMKey_U, debug_toggle_byte, (u32)&debug_update, 0);
-    debug_register_key(RMKey_ArrowUp, debug_add_byte, (u32)&num_particles, 10);
-    debug_register_key(RMKey_ArrowDown, debug_add_byte, (u32)&num_particles, -10);
+    debug_register_key(RMKey_V, MakeVortex, 1, -1);
+    debug_register_key(RMKey_B, MakeVortex, -1, 1);
+    debug_register_key(RMKey_G, debug_toggle_word, (u32)&debug_grid, 0);
+    debug_register_key(RMKey_U, debug_toggle_word, (u32)&debug_update, 0);
+    debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&num_particles, 10);
+    debug_register_key(RMKey_ArrowDown, debug_word_add, (u32)&num_particles, -10);
+    debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
+    debug_register_key(RMKey_2, debug_set_word, (u32)&vortex_radius, 40);
+    debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);
+    debug_register_key(RMKey_4, debug_set_word, (u32)&vortex_radius, 80);
+    debug_register_key(RMKey_5, debug_set_word, (u32)&vortex_radius, 100);
+    debug_register_key(RMKey_6, debug_set_word, (u32)&vortex_radius, 12);
+    debug_register_key(RMKey_7, debug_set_word, (u32)&vortex_radius, 140);
+    debug_register_key(RMKey_8, debug_set_word, (u32)&vortex_radius, 160);
+    debug_register_key(RMKey_9, debug_set_word, (u32)&vortex_radius, 180);
 
     // Flow field init.
     //MakeNoiseGrid();
@@ -169,18 +167,9 @@ int main(int argc, char* argv[]){
 
         debug_do_keypress_callbacks();
 
-        int mx, my;
         u8 mb;
-        mouseRead(&mx, &my, &mb);
+        mouseRead(&mouseX, &mouseY, &mb);
 
-        if (mb&4) {
-            gridAddAttractor(mx, my);
-        }
-        if (mb&1) {
-            gridAddNode(mx, my);
-        }
-
-        
         SET_BORDER(0x000f);
 
         // ===============================
@@ -245,7 +234,7 @@ int main(int argc, char* argv[]){
             debug_plot_string_mode13(vsync_str);
         }
 
-        plotPoint(mx, my, 255);
+        plotPoint(mouseX, mouseY, 255);
 
         SET_BORDER(0x0000);
 
