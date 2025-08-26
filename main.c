@@ -142,7 +142,7 @@ int main(int argc, char* argv[]){
     debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);
     debug_register_key(RMKey_4, debug_set_word, (u32)&vortex_radius, 80);
     debug_register_key(RMKey_5, debug_set_word, (u32)&vortex_radius, 100);
-    debug_register_key(RMKey_6, debug_set_word, (u32)&vortex_radius, 12);
+    debug_register_key(RMKey_6, debug_set_word, (u32)&vortex_radius, 120);
     debug_register_key(RMKey_7, debug_set_word, (u32)&vortex_radius, 140);
     debug_register_key(RMKey_8, debug_set_word, (u32)&vortex_radius, 160);
     debug_register_key(RMKey_9, debug_set_word, (u32)&vortex_radius, 180);

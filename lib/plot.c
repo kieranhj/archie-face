@@ -18,8 +18,8 @@ void plotSinCos() {
         //plotPoint(i, 128+cosLookupTable[i], 255);
         //plotPoint(i, 128+sineLookupTable[i], 64);
 
-        int32_t c=cos_fp(i<<16);
-        int32_t s=sin_fp(i<<16);
+        int32_t c=cos_fix16(i<<16);
+        int32_t s=sin_fix16(i<<16);
 
         plotPoint(i, 128+(c>>9), 255);
         plotPoint(i, 128+(s>>9), 64);

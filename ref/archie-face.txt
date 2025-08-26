@@ -12,6 +12,15 @@ FRAMEWORK:
 - Ideally re-use existing archie-verse asm libs?
 - Clear BSS on init! - DONE
 - Settle on types (int32_t vs i32 vs something else?) - what to use for FP?
+    => int32_t is defined in <stdint.h> (standard lib for compiler)
+    => i32 is a short-hand defined for ArchieSDK.
+    => libfixmath uses: typedef int32_t fix16_t; for [s15.16] fixed-point definition.
+    => Nick uses: typedef signed int fix; for [s15.16] FP.
+    => Fixed point sqrt code uses: typedef int32_t fx16_16_t;
+    => Good practice to use _t for types in C. (Presumably _s for structs.)
+    => fix16_t seems the best balance of length and description and compatible with libfixmath fns when I need them.
+    => Chris uses full stdint definition (and no typedefs!) unless it's an inbuilt type like int.
+    => Coding style!! :P
 
 LOOP CONTROL:
 - Vsync handler - DONE
