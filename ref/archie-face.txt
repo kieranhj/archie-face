@@ -37,7 +37,7 @@ DEBUG:
 LIBS:
 - Memcopy fast
 - Memclr / Memset fast - STARTED
-- Linked list?
+- Linked list? -> CVector class?
 - Random etc.
 
 FIXED-POINT MATHS:

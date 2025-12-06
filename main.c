@@ -27,7 +27,8 @@
 #include "lib/vector.h"
 
 // App modules.
-#include "src/flow-field.h"
+//#include "src/flow-field.h"
+#include "src/fluid2d.h"
 
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
@@ -51,6 +52,9 @@ static int vsyncs_since_last_count;
 
 static int mouseX;
 static int mouseY;
+static int oldMouseX;
+static int oldMouseY;
+
 u32 vortex_radius = 50;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
@@ -106,9 +110,32 @@ void init() {
     atexit(quit);
 }
 
+#if 0
 void MakeVortex(u32 param1, u32 param2) {
     gridAddNode(mouseX, mouseY, param1, param2);
 }
+#endif
+
+#if 0
+union {
+    float val_f;
+    float val_u;
+} density = { .val_f = 1.0f };
+#endif
+
+void AddDensity(u32 param1, u32 param2) {
+    float density = *((float*)&param1);
+    Fluid2DAddDensity(mouseX/FLUID2D_CUBE_SIZE, mouseY/FLUID2D_CUBE_SIZE, density);
+}
+
+void AddVelocity(u32 param1, u32 param2) {
+    float vel_x = *((float*)&param1);
+    float vel_y = *((float*)&param2);
+    Fluid2DAddVelocity(mouseX/FLUID2D_CUBE_SIZE, mouseY/FLUID2D_CUBE_SIZE, vel_x, vel_y);
+}
+
+static const float zerof=0.0f;
+static const float onef=1.0f;
 
 int main(int argc, char* argv[]){
     // Unused params.
@@ -121,20 +148,25 @@ int main(int argc, char* argv[]){
 
     // Lookup tables.
     printf("Init...");
-    MakeSinus();
+    //MakeSinus();
 
     // Debug init.
     debug_register_key(RMKey_D, debug_toggle_word, (u32)&debug_display, 0);
     debug_register_key(RMKey_R, debug_toggle_word, (u32)&debug_rasters, 0);
     debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
+    debug_register_key(RMKey_U, debug_toggle_word, (u32)&debug_update, 0);
+    debug_register_key(RMKey_G, debug_toggle_word, (u32)&debug_grid, 0);
+    debug_register_key(RMKey_T, AddDensity, *((u32*)&onef), *((u32*)&zerof));
+    debug_register_key(RMKey_Y, AddVelocity, *((u32*)&onef), *((u32*)&zerof));
+    debug_register_key(RMKey_H, AddVelocity, *((u32*)&zerof), *((u32*)&onef));
+
+    #if 0
     debug_register_key(RMKey_M, MakeParticles, 0, 0);
     debug_register_key(RMKey_N, MakeNoiseGrid, 0, 0);
     debug_register_key(RMKey_Z, MakeZeroGrid, 0, 0);
     debug_register_key(RMKey_V, MakeVortex, 1, -1);
     debug_register_key(RMKey_B, MakeVortex, -1, 1);
-    debug_register_key(RMKey_G, debug_toggle_word, (u32)&debug_grid, 0);
-    debug_register_key(RMKey_U, debug_toggle_word, (u32)&debug_update, 0);
     debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&num_particles, 10);
     debug_register_key(RMKey_ArrowDown, debug_word_add, (u32)&num_particles, -10);
     debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
@@ -146,11 +178,12 @@ int main(int argc, char* argv[]){
     debug_register_key(RMKey_7, debug_set_word, (u32)&vortex_radius, 140);
     debug_register_key(RMKey_8, debug_set_word, (u32)&vortex_radius, 160);
     debug_register_key(RMKey_9, debug_set_word, (u32)&vortex_radius, 180);
+    #endif
 
     // Flow field init.
     //MakeNoiseGrid();
-    MakeZeroGrid();
-    MakeParticles();
+    //MakeZeroGrid();
+    //MakeParticles();
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -165,10 +198,11 @@ int main(int argc, char* argv[]){
     // ===============================
     while(!k_checkKeypress(KEY_ESCAPE)){
 
+        // Sources get added here:
         debug_do_keypress_callbacks();
 
         u8 mb;
-        mouseRead(&mouseX, &mouseY, &mb);
+        mouseRead(&mouseX, &mouseY, &mb);       // in pixels
 
         SET_BORDER(0x000f);
 
@@ -178,9 +212,26 @@ int main(int argc, char* argv[]){
         if (debug_do_tick || debug_step) {
             debug_step = 0;
 
-            if (debug_update) updateGrid();
+            //if (debug_update) updateGrid();
+            //moveParticles();
 
-            moveParticles();
+            // TODO: Add sources (currently done in debug key callback).
+            int i = 1 + mouseX / FLUID2D_CUBE_SIZE;
+            int j = 1 + mouseY / FLUID2D_CUBE_SIZE;
+
+            if (mb&4) {
+                Fluid2DAddDensity(i, j, 150.0f);
+            }
+
+            float du = (mouseX - oldMouseX) * 0.5f;
+            float dv = (mouseY - oldMouseY) * 0.5f;
+            Fluid2DAddVelocity(i, j, du, dv);
+
+            Fluid2DStep(0.1f);  // 10Hz
+            Fluid2DClear();
+
+            oldMouseX = mouseX;
+            oldMouseY = mouseY;
 
             // Frame rate
             frame_count++;
@@ -215,14 +266,13 @@ int main(int argc, char* argv[]){
         SET_BORDER(0x00f0);
 
         //plotSinCos();
-
-        if (debug_grid) drawGridDirs();
-
+        //if (debug_grid) drawGridDirs();
         //for(int i=0; i < 100; i++) {
         //    plotCurve(randomBetween(0,319), randomBetween(0,255), 32, 64+i);
         //}
+        //plotParticles();
 
-        plotParticles();
+        Fluid2DDraw();
 
         // Print some debug info.
         SET_BORDER(0x0fff);
@@ -230,7 +280,7 @@ int main(int argc, char* argv[]){
         if (debug_display) {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-            sprintf(vsync_str, "%d %x %d", debug_frame_rate, mb, num_particles);
+            sprintf(vsync_str, "%d %d", debug_frame_rate, mb);
             debug_plot_string_mode13(vsync_str);
         }
 
@@ -244,7 +294,7 @@ int main(int argc, char* argv[]){
         v_setDisplayBank(write_bank);   // screen won't be displayed until vsync.
     }
 
-    KillGrid();
+    //KillGrid();
 
 	return 0;
 }
