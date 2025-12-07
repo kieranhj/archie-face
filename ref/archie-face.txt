@@ -60,3 +60,32 @@ Make a PC build!
 - Plotting points etc.
 - Plotting text / debug etc.
 - Keyboard / mouse input
+
+
+PUSH 2 / Flow Fields
+---
+
+Prototypes to try
+- Colours:
+    - Different particle sources that have a colour each - how do they mix / interact?
+    - Changing particle colour over time. => Need lifetime.
+    - Colour by distance from attractors.
+    - Colour by flow direction? => Might work but Archie palette makes no sense
+      => Move to HSV mapping to Archie 256 colour palette?
+    - Dave asks if the particles can twinkle a bit (cf. Empires)
+- Speed:
+    - Different particles moving at different speeds - slow things down!
+- Visualising the flow field.
+    - Drawing lines along the flow field.
+- Sprites:
+    - Drawing sprites on the flow field not points.
+- Updating the flow field:
+    - Add collision object (cf.Push) that displaces the flow field locally.
+    - Looks quite nice when the noise grid is updated (although it takes a coupe of seconds)
+
+TODO:
+- Add emitter objects that generate particles with specific properties
+- Add particle properties?
+    - Lifetime (or just tick time of creation to avoid having to update these)
+    - Colour?
+    - Speed?

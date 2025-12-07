@@ -49,8 +49,8 @@ static int frame_count = 0;
 static int debug_frame_rate;
 static int vsyncs_since_last_count;
 
-static int mouseX;
-static int mouseY;
+int mouseX;
+int mouseY;
 u32 vortex_radius = 50;
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
@@ -110,6 +110,10 @@ void MakeVortex(u32 param1, u32 param2) {
     gridAddNode(mouseX, mouseY, param1, param2);
 }
 
+void MakeCurve(u32 param1, u32 param2) {
+    plotCurve(mouseX, mouseY, 128, randomBetween(64,255));
+}
+
 int main(int argc, char* argv[]){
     // Unused params.
     (void)argc;
@@ -133,6 +137,7 @@ int main(int argc, char* argv[]){
     debug_register_key(RMKey_Z, MakeZeroGrid, 0, 0);
     debug_register_key(RMKey_V, MakeVortex, 1, -1);
     debug_register_key(RMKey_B, MakeVortex, -1, 1);
+    debug_register_key(RMKey_C, MakeCurve, 0, 0);
     debug_register_key(RMKey_G, debug_toggle_word, (u32)&debug_grid, 0);
     debug_register_key(RMKey_U, debug_toggle_word, (u32)&debug_update, 0);
     debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&num_particles, 10);

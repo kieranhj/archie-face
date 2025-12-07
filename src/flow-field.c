@@ -9,6 +9,9 @@
 #include "../lib/trig.h"
 #include "../lib/vector.h"
 
+#define _USE_MOUSE_POS_TO_SPAWN             TRUE
+#define _PARTICLE_COLOUR_FROM_DIRECTION     FALSE
+
 static int Permutation[512];
 
 static vec2fp particles[MAX_PARTICLES];
@@ -144,9 +147,23 @@ void plotCurve(int x0, int y0, int num_steps, int col) {
 
 void plotParticles() {
     for(int i = 0; i < num_particles; i++) {
-       plotPoint(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), 64 + (i>>2));
+        #if _PARTICLE_COLOUR_FROM_DIRECTION
+        int col_idx = FIX16_TO_INT(particles[i].x) / GRID_STEPX;
+        int row_idx = FIX16_TO_INT(particles[i].y) / GRID_STEPY;
+
+        if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS) {
+            fix16_t a = grid[row_idx*GRID_COLS + col_idx];
+            plotPoint(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), FIX16_TO_INT(a));
+        }
+        #else
+        plotPoint(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), 64 + (i>>2));
+        #endif
     }
 }
+
+extern int mouseX;
+extern int mouseY;
+extern u32 vortex_radius;
 
 void moveParticles() {
     for(int i = 0; i < num_particles; i++) {
@@ -159,12 +176,17 @@ void moveParticles() {
             fix16_t dx = cos_fix16(a);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a);             // [-1.0, 1.0]  [s1.16]
 
-            particles[i].x += dx;
-            particles[i].y += dy;
+            particles[i].x += FIX16_MUL(dx, FLOAT_TO_FIX16(0.8f));
+            particles[i].y += FIX16_MUL(dy, FLOAT_TO_FIX16(0.8f));
         }
         else {
+            #if _USE_MOUSE_POS_TO_SPAWN
+            particles[i].x = INT_TO_FIX16(mouseX + randomBetween(0,vortex_radius)-vortex_radius/2);
+            particles[i].y = INT_TO_FIX16(mouseY + randomBetween(0,vortex_radius)-vortex_radius/2);
+            #else
             particles[i].x = INT_TO_FIX16(randomBetween(0,319));
             particles[i].y = INT_TO_FIX16(randomBetween(0,255));
+            #endif
         }
     }
 }

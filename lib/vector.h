@@ -21,7 +21,8 @@ inline float dot(vec2f a, vec2f b) {
 }
 
 inline int randomBetween(int min, int max) {            // can return negative values?
-    return rand() % (max + 1 - min) + min;
+    int n = rand() % (max + 1 - min) + min;
+    return n < 0 ? -n : n;
 }
 
 #endif // __VECTOR_H__
