@@ -46,13 +46,13 @@ u32 debug_rasters = 1;
 static u32 debug_grid = 0;
 static u32 debug_update = 0;
 
+// Main loop vars.
 static int frame_count = 0;
 static int debug_frame_rate;
 static int vsyncs_since_last_count;
 
-int mouseX;
-int mouseY;
-u32 vortex_radius = 50;
+// This is very much a debug variable.
+u32 vortex_radius = 50;                 // TODO: Make not global or rename to g_* and have done.
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
     // TODO: Probably want to preserve all registers used in the event handler?
@@ -108,12 +108,18 @@ void init() {
 }
 
 void MakeVortex(u32 param1, u32 param2) {
-    gridAddNode(mouseX, mouseY, param1, param2);
+    int mouseX, mouseY;
+    u8 mb;
+    mouseRead(&mouseX, &mouseY, &mb);
+    gridAddNode(mouseX, mouseY, param1, param2, vortex_radius);
 }
 
 void MakeCurve(u32 param1, u32 param2) {
     (void)param1;
     (void)param2;
+    int mouseX, mouseY;
+    u8 mb;
+    mouseRead(&mouseX, &mouseY, &mb);
     plotCurve(mouseX, mouseY, 128, randomBetween(64,255));
 }
 
@@ -174,10 +180,8 @@ int main(int argc, char* argv[]){
     // ===============================
     while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE)){
 
+        mouseUpdate();
         debug_do_keypress_callbacks();
-
-        u8 mb;
-        mouseRead(&mouseX, &mouseY, &mb);
 
         SET_BORDER(0x000f);
 
@@ -236,6 +240,10 @@ int main(int argc, char* argv[]){
 
         // Print some debug info.
         SET_BORDER(0x0fff);
+
+        int mouseX, mouseY;
+        u8 mb;
+        mouseRead(&mouseX, &mouseY, &mb);
 
         if (debug_display) {
             char vsync_str[16];

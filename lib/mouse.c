@@ -5,7 +5,19 @@
 #include "mouse.h"
 #include "archie/swi.h"
 
-void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons) {
+static int MouseX;
+static int MouseY;
+static u8 MouseButtons;
+
+void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons)
+{
+    *mouseX = MouseX;
+    *mouseY = MouseY;
+    *mouseButtons = MouseButtons;
+}
+
+void mouseUpdate()
+{
     int x, y, b;
     asm volatile("swi " swiToConst(OS_Mouse) "\n"
                  "mov %0, r0\n"
@@ -14,7 +26,7 @@ void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons) {
                 : "=r"(x), "=r"(y), "=r"(b)          // outputs
                 : 
                 : "r0", "r1", "r2", "cc"); // clobbers
-    *mouseX = x/4;
-    *mouseY = (1023-y)/4;
-    *mouseButtons = b;
+    MouseX = x/4;
+    MouseY = (1023-y)/4;
+    MouseButtons = b;
 }

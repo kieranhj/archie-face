@@ -5,100 +5,20 @@
 #include "flow-field.h"
 #include <stdlib.h>
 #include <math.h>
+#include "noise.h"
+#include "../lib/mouse.h"
 #include "../lib/plot.h"
 #include "../lib/trig.h"
 #include "../lib/vector.h"
 
-#define _USE_MOUSE_POS_TO_SPAWN             TRUE
-#define _PARTICLE_COLOUR_FROM_DIRECTION     FALSE
-
-static int Permutation[512];
+#define _USE_MOUSE_POS_TO_SPAWN             1
+#define _PARTICLE_COLOUR_FROM_DIRECTION     0
 
 static vec2fp particles[MAX_PARTICLES];
 
 int num_particles = MAX_PARTICLES / 2;
 
 static fix16_t grid[GRID_ROWS * GRID_COLS];
-
-void shuffle(int *arrayToShuffle) {
-	for(int e = 255; e > 0; e--) {
-		u8 index = randomBetween(0,e-1);
-		int temp = arrayToShuffle[e];
-		
-		arrayToShuffle[e] = arrayToShuffle[index];
-		arrayToShuffle[index] = temp;
-	}
-}
-
-void MakePermutation() {
-	for(int i = 0; i < 256; i++) {
-		Permutation[i]=i;
-	}
-
-	shuffle(Permutation);
-
-    for(int i = 0; i < 256; i++) {
-        Permutation[256+i] = Permutation[i];
-    }
-}
-
-vec2f GetConstantVector(int v) {
-    vec2f vec0 = {1.0f, 1.0f};
-    vec2f vec1 = {-1.0f, 1.0f};
-    vec2f vec2 = {-1.0f, -1.0f};
-    vec2f vec3 = {1.0f, -1.0f};
-
-	// v is the value from the permutation table
-	int h = v & 3;
-	if(h == 0)
-		return vec0;
-	else if(h == 1)
-		return vec1;
-	else if(h == 2)
-		return vec2;
-	else
-		return vec3;
-}
-
-float Fade(float t) {
-	return ((6*t - 15)*t + 10)*t*t*t;
-}
-
-float Lerp(float t, float a1, float a2) {
-	return a1 + t*(a2-a1);
-}
-
-float Noise2D(float x, float y) {
-	int X = (int)floorf(x) & 255;
-	int Y = (int)floorf(y) & 255;
-
-	float xf = x-floorf(x);
-	float yf = y-floorf(y);
-
-	vec2f topRight = {xf-1.0f, yf-1.0f};
-	vec2f topLeft = {xf, yf-1.0f};
-	vec2f bottomRight = {xf-1.0f, yf};
-	vec2f bottomLeft = {xf, yf};
-
-	// Select a value from the permutation array for each of the 4 corners
-	int valueTopRight = Permutation[Permutation[X+1]+Y+1];
-	int valueTopLeft = Permutation[Permutation[X]+Y+1];
-	int valueBottomRight = Permutation[Permutation[X+1]+Y];
-	int valueBottomLeft = Permutation[Permutation[X]+Y];
-	
-	float dotTopRight = dot(topRight, GetConstantVector(valueTopRight));
-	float dotTopLeft = dot(topLeft, GetConstantVector(valueTopLeft));
-	float dotBottomRight = dot(bottomRight, GetConstantVector(valueBottomRight));
-	float dotBottomLeft = dot(bottomLeft, GetConstantVector(valueBottomLeft));
-	
-	float u = Fade(xf);
-	float v = Fade(yf);
-	
-	return Lerp(u,
-		Lerp(v, dotBottomLeft, dotTopLeft),
-		Lerp(v, dotBottomRight, dotTopRight)
-	);
-}
 
 void drawGrid() {
     for(int i = 0; i < GRID_COLS; i++) {
@@ -161,11 +81,16 @@ void plotParticles() {
     }
 }
 
-extern int mouseX;
-extern int mouseY;
 extern u32 vortex_radius;
 
-void moveParticles() {
+void moveParticles()
+{
+    #if _USE_MOUSE_POS_TO_SPAWN
+    int mouseX, mouseY;
+    u8 mb;
+    mouseRead(&mouseX, &mouseY, &mb);
+    #endif
+
     for(int i = 0; i < num_particles; i++) {
         int col_idx = FIX16_TO_INT(particles[i].x) / GRID_STEPX;
         int row_idx = FIX16_TO_INT(particles[i].y) / GRID_STEPY;
@@ -263,11 +188,9 @@ void gridAddAttractor(int x, int y) {
     }
 }
 
-extern u32 vortex_radius;
-
-void gridAddNode(int x, int y, int fx, int fy) {
+void gridAddNode(int x, int y, int fx, int fy, int radius) {
     // Make grid points within radius R move around (x,y)
-    float r = vortex_radius;
+    float r = radius;
     float r2 = r*r;
 
     for(int i = 0; i < GRID_COLS; i++) {

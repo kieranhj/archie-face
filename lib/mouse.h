@@ -7,6 +7,7 @@
 
 #include "archie/SDKTypes.h"
 
+void mouseUpdate();
 void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons);
 
 #endif
