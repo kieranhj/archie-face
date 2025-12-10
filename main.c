@@ -28,6 +28,7 @@
 
 // App modules.
 #include "src/flow-field.h"
+#include "src/colour.h"
 
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
@@ -111,6 +112,8 @@ void MakeVortex(u32 param1, u32 param2) {
 }
 
 void MakeCurve(u32 param1, u32 param2) {
+    (void)param1;
+    (void)param2;
     plotCurve(mouseX, mouseY, 128, randomBetween(64,255));
 }
 
@@ -124,7 +127,8 @@ int main(int argc, char* argv[]){
     // NB. init() wipes BSS so can't init static vars before this!!
 
     // Lookup tables.
-    printf("Init...");
+    printf("Init...   ");
+    //MakeDefaultPalette();
     MakeSinus();
 
     // Debug init.
@@ -168,7 +172,7 @@ int main(int argc, char* argv[]){
     // ===============================
     // Main loop.
     // ===============================
-    while(!k_checkKeypress(KEY_ESCAPE)){
+    while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE)){
 
         debug_do_keypress_callbacks();
 
@@ -228,6 +232,7 @@ int main(int argc, char* argv[]){
         //}
 
         plotParticles();
+        //plotColours();
 
         // Print some debug info.
         SET_BORDER(0x0fff);

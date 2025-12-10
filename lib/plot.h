@@ -11,5 +11,6 @@ void plotPoint(register int x, register int y, register u8 c);
 void plotLine(int x0, int y0, int x1, int y1, u8 col);
 
 void plotSinCos();  // debug
+void plotBlock(int x, int y, u8 col);
 
 #endif // __PLOT_H__

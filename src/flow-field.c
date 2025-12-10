@@ -215,7 +215,7 @@ void MakeNoiseGrid() {
     MakePermutation();
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
-            float n = Noise2D(i * 0.1f, j * 0.1f);
+            float n = Noise2D(i * 0.1f, j * 0.1f);  // NOISE SMOOTHING FACTOR
             n = (n + 1.0f) * 0.5f;
             grid[j*GRID_COLS + i] = FLOAT_TO_FIX16(256*n);
         }

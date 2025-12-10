@@ -29,5 +29,6 @@ void KillGrid();
 
 void gridAddAttractor(int x, int y);
 void gridAddNode(int x, int y, int fx, int fy);
+void plotCurve(int x0, int y0, int num_steps, int col);
 
 #endif // __FLOW_FIELD_H__

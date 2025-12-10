@@ -70,17 +70,34 @@ Prototypes to try
     - Different particle sources that have a colour each - how do they mix / interact?
     - Changing particle colour over time. => Need lifetime.
     - Colour by distance from attractors.
+    - Colour by speed.
     - Colour by flow direction? => Might work but Archie palette makes no sense
       => Move to HSV mapping to Archie 256 colour palette?
+        https://gemini.google.com/share/237cbefdb371
+        https://stardot.org.uk/forums/viewtopic.php?p=420886&hilit=archimedes+palette&sid=1898cb202aead1ac808129b2208fcfed#p420886
+        https://oneweekwonder.blogspot.com/2024/03/colour-me-stupid-early-archimedes-8-bit.html
+        https://stardot.org.uk/forums/viewtopic.php?p=48119#p48119
+      => What would be a sensible palette arrangement?
+        Assume 64 hues? (6 bits)
+        Max 16 saturations (4 bits) => Use 2 bits for 12-bit palette? V:4 | S:2 | H:6 (then greys are V<<8)
+        Max 16 values (4 bits)
+        Total 14 bits = 16384 entries... very wasteful, e.g. s=0 => all hues are same for a give value (greys)
+        Could just as easily create 12-bit RGB palette with 4096 entries containing the nearest match.
+        (This is before getting on to dither patterns for closest match...)
+
     - Dave asks if the particles can twinkle a bit (cf. Empires)
 - Speed:
     - Different particles moving at different speeds - slow things down!
+- Movement:
+    - Adding another preferred constant vector to the direction.
 - Visualising the flow field.
     - Drawing lines along the flow field.
 - Sprites:
     - Drawing sprites on the flow field not points.
 - Updating the flow field:
     - Add collision object (cf.Push) that displaces the flow field locally.
+        => Dave tried this on his prototype and thought it detracted from the flow field (too similar to Push)
+        => Dave likes the vortex whirls.
     - Looks quite nice when the noise grid is updated (although it takes a coupe of seconds)
 
 TODO:
@@ -89,3 +106,4 @@ TODO:
     - Lifetime (or just tick time of creation to avoid having to update these)
     - Colour?
     - Speed?
+    - Offset vector.

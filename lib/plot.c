@@ -12,6 +12,18 @@ void plotPoint(register int x, register int y, register u8 c) {
     if (x>=0 && x<320 && y>=0 && y<256) *(g_framebuffer + x + y*320) = c;
 }
 
+void plotBlock(register int x, register int y, register u8 c) {
+    int x0=x&~0x3, y0=y&~0x3;
+    u32 cw=c|(c<<8);cw=cw|(cw<<16);
+
+    u32* fp=(u32 *)(g_framebuffer + x0 + y0*320);
+
+    *fp = cw; fp+=80;
+    *fp = cw; fp+=80;
+    *fp = cw; fp+=80;
+    *fp = cw;
+}
+
 void plotSinCos() {
     for (int i=0; i < 256; i++) {
         // NB. tables are upside down because the screen is 0 at the top...
