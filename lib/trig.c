@@ -10,7 +10,8 @@
 
 static fix16_t sinusTable[SINUS_TABLE_ENTRIES];
 
-void MakeSinus() {
+void trig_init() {
+    // Generate sine table.
     assert(SINUS_TABLE_ENTRIES == 8192);
     for(int i=0; i < SINUS_TABLE_ENTRIES; i++) {
         float r=(float) i / SINUS_TABLE_ENTRIES;
@@ -34,7 +35,7 @@ fix16_t cos_fix16(fix16_t brad) {
     return sinusTable[((brad + FLOAT_TO_FIX16(64)) >> 11) & (SINUS_TABLE_ENTRIES-1)];
 }
 
-float FastArcTan2(float y, float x) {
+float trig_fast_arctan2(float y, float x) {
 	if (x >= 0) { // -pi/2 .. pi/2
 		if (y >= 0) { // 0 .. pi/2
 			if (y < x) { // 0 .. pi/4
@@ -66,6 +67,24 @@ float FastArcTan2(float y, float x) {
 	}
 }
 
+// ============================================================================
+
+#if 0
+void plotSinCos() {
+    for (int i=0; i < 256; i++) {
+        // NB. tables are upside down because the screen is 0 at the top...
+        //plot_point(i, 128+cosLookupTable[i], 255);
+        //plot_point(i, 128+sineLookupTable[i], 64);
+
+        int32_t c=cos_fix16(i<<16);
+        int32_t s=sin_fix16(i<<16);
+
+        plot_point(i, 128+(c>>9), 255);
+        plot_point(i, 128+(s>>9), 64);
+    }
+}
+#endif
+
 #if 0
 void ArcTanTest() {
     for(int a=0; a<256; a+=8) {
@@ -74,7 +93,7 @@ void ArcTanTest() {
         float dy=sinf(a*M_PI/128.0f)*r;
         float at2=atan2f(dy,dx);
         float a2=at2/4.0f;
-        float fat2=FastArcTan2(dy,dx);
+        float fat2=trig_fast_arctan2(dy,dx);
         //float a2=fat2/(2.0f*M_PI);
         //if (a2<0.0f) a2=1.0f+a2;
         a2*=256;

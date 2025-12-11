@@ -7,11 +7,10 @@
 
 #include "archie/SDKTypes.h"
 
-void MakeArchie256Palette(const u16* basePalette, u16* palette256);
-void MakeDefaultPalette();
-void plotColours();
+void colour_init_palette();
+void colour_draw_palette();
 
-u8 rgbToArchie(u16 rgb);
-u16 hsvToRgb(float h, float s, float v);
+u8 colour_rgb4_to_index(u16 rgb);
+u16 colour_hsv_to_rgb4(float h, float s, float v);
 
-#endif // __PLOT_H__
+#endif // __COLOUR_H__

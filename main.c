@@ -6,16 +6,9 @@
 
 #include "src/globals.h"
 
-// C libraries.
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
-// ArchieSDK libraries.
-#include "archie/swi.h"
-#include "archie/video.h"
-#include "archie/keyboard.h"
+// App modules.
+#include "src/flow-field.h"
+#include "src/colour.h"
 
 // My libraries. :)
 #include "lib/debug.h"
@@ -26,9 +19,16 @@
 #include "lib/video.h"
 #include "lib/vector.h"
 
-// App modules.
-#include "src/flow-field.h"
-#include "src/colour.h"
+// ArchieSDK libraries.
+#include "archie/swi.h"
+#include "archie/video.h"
+#include "archie/keyboard.h"
+
+// C libraries.
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
 
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
@@ -110,7 +110,7 @@ void init() {
 void MakeVortex(u32 param1, u32 param2) {
     int mouseX, mouseY;
     u8 mb;
-    mouseRead(&mouseX, &mouseY, &mb);
+    mouse_read(&mouseX, &mouseY, &mb);
     gridAddNode(mouseX, mouseY, param1, param2, vortex_radius);
 }
 
@@ -119,8 +119,8 @@ void MakeCurve(u32 param1, u32 param2) {
     (void)param2;
     int mouseX, mouseY;
     u8 mb;
-    mouseRead(&mouseX, &mouseY, &mb);
-    plotCurve(mouseX, mouseY, 128, randomBetween(64,255));
+    mouse_read(&mouseX, &mouseY, &mb);
+    plotCurve(mouseX, mouseY, 128, rand_between(64,255));
 }
 
 int main(int argc, char* argv[]){
@@ -134,8 +134,8 @@ int main(int argc, char* argv[]){
 
     // Lookup tables.
     printf("Init...   ");
-    //MakeDefaultPalette();
-    MakeSinus();
+    //colour_init_palette();
+    trig_init();
 
     // Debug init.
     debug_register_key(RMKey_D, debug_toggle_word, (u32)&debug_display, 0);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]){
     // ===============================
     while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE)){
 
-        mouseUpdate();
+        mouse_tick();
         debug_do_keypress_callbacks();
 
         SET_BORDER(0x000f);
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]){
 
         // Clear screen
         SET_BORDER(0x0f00);
-        memsetFast((u32*)g_framebuffer, 0, Screen_SizeBytes);
+        mem_set_fast((u32*)g_framebuffer, 0, Screen_SizeBytes);
 
         // Draw screen
         SET_BORDER(0x00f0);
@@ -232,18 +232,18 @@ int main(int argc, char* argv[]){
         if (debug_grid) drawGridDirs();
 
         //for(int i=0; i < 100; i++) {
-        //    plotCurve(randomBetween(0,319), randomBetween(0,255), 32, 64+i);
+        //    plotCurve(rand_between(0,319), rand_between(0,255), 32, 64+i);
         //}
 
         plotParticles();
-        //plotColours();
+        //colour_draw_palette();
 
         // Print some debug info.
         SET_BORDER(0x0fff);
 
         int mouseX, mouseY;
         u8 mb;
-        mouseRead(&mouseX, &mouseY, &mb);
+        mouse_read(&mouseX, &mouseY, &mb);
 
         if (debug_display) {
             char vsync_str[16];
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]){
             debug_plot_string_mode13(vsync_str);
         }
 
-        plotPoint(mouseX, mouseY, 255);
+        plot_point(mouseX, mouseY, 255);
 
         SET_BORDER(0x0000);
 

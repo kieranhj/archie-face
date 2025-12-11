@@ -13,13 +13,14 @@
 //
 // ============================================================================
 
+#include "colour.h"
+#include "../lib/plot.h"
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
-#include "colour.h"
-#include "../lib/plot.h"
 
 // Standard RISCOS VIDC1 palette RGB4 values in 256 colour MODE.
 // Gives 64 colours (R:2 G:2 B:2) with 4 'tints' (brightness / greys).
@@ -37,7 +38,9 @@ static u8 usedCount[256];       // for debugging.
 static u8 HsvPalette[4096];     // 0x0VsH (V:4 S:2 H:6) value -> colour index [0, 255]
 static u8 Rgb4Palette[4096];    // 0x0RGB (R:4 G:4 B:4) value -> colour index [0, 255]
 
-void MakeArchie256Palette(const u16* basePalette, u16* palette256)
+// ============================================================================
+
+static void MakeArchie256Palette(const u16* basePalette, u16* palette256)
 {
 	for (int i = 0; i < 256; i++)
 	{
@@ -56,7 +59,7 @@ void MakeArchie256Palette(const u16* basePalette, u16* palette256)
 	}
 }
 
-void MakeHsvPalette(u8* hsvPalette)
+static void MakeHsvPalette(u8* hsvPalette)
 {
     // 4 bits of Value
 	for (int v = 0; v <= 15; v++)
@@ -67,13 +70,13 @@ void MakeHsvPalette(u8* hsvPalette)
             // 6 bits of Hue
             for (int h = 0; h <= 63; h++)
             {
-                *hsvPalette++ = rgbToArchie(hsvToRgb(h/64.0f, s/3.0f, v/15.0f));
+                *hsvPalette++ = colour_rgb4_to_index(colour_hsv_to_rgb4(h/64.0f, s/3.0f, v/15.0f));
             }
         }
     }
 }
 
-void MakeRgb4Palette(u8* rgb4palette)
+static void MakeRgb4Palette(u8* rgb4palette)
 {
     // 4 bits of Red
 	for (int r = 0; r <= 15; r++)
@@ -85,20 +88,20 @@ void MakeRgb4Palette(u8* rgb4palette)
             for (int b = 0; b <= 15; b++)
             {
                 u16 rgb4 = (r<<8)|(g<<4)|(b<<0);
-                *rgb4palette++ = rgbToArchie(rgb4);
+                *rgb4palette++ = colour_rgb4_to_index(rgb4);
             }
         }
     }
 }
 
-void MakeDefaultPalette()
+void colour_init_palette()
 {
     MakeArchie256Palette(defaultPalette, archie256);
     MakeHsvPalette(HsvPalette);
     MakeRgb4Palette(Rgb4Palette);
 }
 
-void plotColours()
+void colour_draw_palette()
 {
     int x=0, y=8;
 
@@ -106,7 +109,7 @@ void plotColours()
     #if 0
     for(int c=0; c<256; c++)
     {
-        plotBlock(x,y,c);
+        plot_block(x,y,c);
         x+=4;
         if(x>=64){x=0; y+=4;}
     }
@@ -118,8 +121,8 @@ void plotColours()
         x=0;
         for(int h=0; h<64; h++)
         {
-            u8 c = rgbToArchie(hsvToRgb(h/64.0f, s/16.0f, 1.0f));
-            plotBlock(x,y,c);
+            u8 c = colour_rgb4_to_index(colour_hsv_to_rgb4(h/64.0f, s/16.0f, 1.0f));
+            plot_block(x,y,c);
             usedCount[c]+=1;
             x+=4;
         }
@@ -130,8 +133,8 @@ void plotColours()
         x=0;
         for(int h=0; h<64; h++)
         {
-            u8 c = rgbToArchie(hsvToRgb(h/64.0f, 1.0f, v/16.0f));
-            plotBlock(x,y,c);
+            u8 c = colour_rgb4_to_index(colour_hsv_to_rgb4(h/64.0f, 1.0f, v/16.0f));
+            plot_block(x,y,c);
             usedCount[c]+=1;
             x+=4;
         }
@@ -142,8 +145,8 @@ void plotColours()
         x=0;
         for(int h=0; h<64; h++)
         {
-            u8 c = rgbToArchie(hsvToRgb(h/64.0f, 0.0f, v/16.0f));
-            plotBlock(x,y,c);
+            u8 c = colour_rgb4_to_index(colour_hsv_to_rgb4(h/64.0f, 0.0f, v/16.0f));
+            plot_block(x,y,c);
             usedCount[c]+=1;
             x+=4;
         }
@@ -158,7 +161,7 @@ void plotColours()
     {
         u8 c=HsvPalette[i];
         //u8 c=Rgb4Palette[i];
-        plotBlock(x,y,c);
+        plot_block(x,y,c);
         x=(x+4) & 0xff;
         if (x==0) y+=4;
         usedCount[c]+=1;
@@ -176,7 +179,7 @@ void plotColours()
 
 // Convert an RGB4 (0x0RGB) value to Archie colour index [0, 255] based on VIDC palette.
 // Does an exhaustive search to find the nearest RGB value.
-u8 rgbToArchie(u16 rgb)
+u8 colour_rgb4_to_index(u16 rgb)
 {
     u8 R, G, B;
     int minDist2=0;
@@ -218,7 +221,7 @@ u8 rgbToArchie(u16 rgb)
 }
 
 // Floating point HSV values to RGB4. Yoinked from https://stackoverflow.com/questions/51203917/math-behind-hsv-to-rgb-conversion-of-colors
-u16 hsvToRgb(float h, float s, float v)
+u16 colour_hsv_to_rgb4(float h, float s, float v)
 {
     float r, g, b;
     u8 R, G, B;

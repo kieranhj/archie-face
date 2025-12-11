@@ -22,6 +22,12 @@ FRAMEWORK:
     => Chris uses full stdint definition (and no typedefs!) unless it's an inbuilt type like int.
 - Need a clean coding style and naming conventions - it's all over the place!!
 
+Include order: module header, local headers, SDK headers, CLib headers.
+Declaration order: concrete struct, enum.
+Definition order: const, enum, bare struct, static.
+Naming all lower case with _ starting with module name.
+_init = called before use. _tick = called once per main loop. _draw = called to draw to screen. _kill = called to clean up.
+
 LOOP CONTROL:
 - Vsync handler - DONE
 - Triple buffering - DONE
@@ -66,9 +72,9 @@ Make a PC build!
 ---
 => Move to HSV mapping to Archie 256 colour palette?
     https://gemini.google.com/share/237cbefdb371
-    https://stardot.org.uk/forums/viewtopic.php?p=420886&hilit=archimedes+palette&sid=1898cb202aead1ac808129b2208fcfed#p420886
+    https://starvec2f_dot.org.uk/forums/viewtopic.php?p=420886&hilit=archimedes+palette&sid=1898cb202aead1ac808129b2208fcfed#p420886
     https://oneweekwonder.blogspot.com/2024/03/colour-me-stupid-early-archimedes-8-bit.html
-    https://stardot.org.uk/forums/viewtopic.php?p=48119#p48119
+    https://starvec2f_dot.org.uk/forums/viewtopic.php?p=48119#p48119
 => What would be a sensible palette arrangement?
     Assume 64 hues? (6 bits)
     Max 16 saturations (4 bits) => Use 2 bits for 12-bit palette? V:4 | S:2 | H:6 (then greys are V<<8)

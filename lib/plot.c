@@ -1,18 +1,20 @@
 // ============================================================================
 // Plot functions.
+// NB. Currently for MODE 13 only.
 // ============================================================================
 
 #include "plot.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include "../src/globals.h"     // TODO: Rarr! Libs shouldn't depend on src? :S
 #include "trig.h"
 
-void plotPoint(register int x, register int y, register u8 c) {
+#include <stdlib.h>
+#include <stdio.h>
+
+void plot_point(register int x, register int y, register u8 c) {
     if (x>=0 && x<320 && y>=0 && y<256) *(g_framebuffer + x + y*320) = c;
 }
 
-void plotBlock(register int x, register int y, register u8 c) {
+void plot_block(register int x, register int y, register u8 c) {
     int x0=x&~0x3, y0=y&~0x3;
     u32 cw=c|(c<<8);cw=cw|(cw<<16);
 
@@ -24,21 +26,7 @@ void plotBlock(register int x, register int y, register u8 c) {
     *fp = cw;
 }
 
-void plotSinCos() {
-    for (int i=0; i < 256; i++) {
-        // NB. tables are upside down because the screen is 0 at the top...
-        //plotPoint(i, 128+cosLookupTable[i], 255);
-        //plotPoint(i, 128+sineLookupTable[i], 64);
-
-        int32_t c=cos_fix16(i<<16);
-        int32_t s=sin_fix16(i<<16);
-
-        plotPoint(i, 128+(c>>9), 255);
-        plotPoint(i, 128+(s>>9), 64);
-    }
-}
-
-void plotLine(int x0, int y0, int x1, int y1, u8 col) {
+void plot_line(int x0, int y0, int x1, int y1, u8 col) {
     int dx = abs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;
     int dy = -abs(y1 - y0);

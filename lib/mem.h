@@ -7,6 +7,6 @@
 
 #include "archie/SDKTypes.h"
 
-void memsetFast(u32* dest, u32 c, u32 size);
+void mem_set_fast(u32* dest, u32 c, u32 size);
 
 #endif // __MEM_H__

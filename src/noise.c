@@ -4,14 +4,15 @@
 
 #include "noise.h"
 #include "globals.h"
-#include <math.h>
 #include "../lib/vector.h"
+
+#include <math.h>
 
 static int Permutation[512];
 
 static void shuffle(int *arrayToShuffle) {
 	for(int e = 255; e > 0; e--) {
-		u8 index = randomBetween(0,e-1);
+		u8 index = rand_between(0,e-1);
 		int temp = arrayToShuffle[e];
 		
 		arrayToShuffle[e] = arrayToShuffle[index];
@@ -19,7 +20,7 @@ static void shuffle(int *arrayToShuffle) {
 	}
 }
 
-void MakePermutation() {
+void noise_init() {
 	for(int i = 0; i < 256; i++) {
 		Permutation[i]=i;
 	}
@@ -57,7 +58,7 @@ static float Lerp(float t, float a1, float a2) {
 	return a1 + t*(a2-a1);
 }
 
-float Noise2D(float x, float y) {
+float noise_sample_2d(float x, float y) {
 	int X = (int)floorf(x) & 255;
 	int Y = (int)floorf(y) & 255;
 
@@ -75,16 +76,16 @@ float Noise2D(float x, float y) {
 	int valueBottomRight = Permutation[Permutation[X+1]+Y];
 	int valueBottomLeft = Permutation[Permutation[X]+Y];
 	
-	float dotTopRight = dot(topRight, GetConstantVector(valueTopRight));
-	float dotTopLeft = dot(topLeft, GetConstantVector(valueTopLeft));
-	float dotBottomRight = dot(bottomRight, GetConstantVector(valueBottomRight));
-	float dotBottomLeft = dot(bottomLeft, GetConstantVector(valueBottomLeft));
+	float vec2f_dotTopRight = vec2f_dot(topRight, GetConstantVector(valueTopRight));
+	float vec2f_dotTopLeft = vec2f_dot(topLeft, GetConstantVector(valueTopLeft));
+	float vec2f_dotBottomRight = vec2f_dot(bottomRight, GetConstantVector(valueBottomRight));
+	float vec2f_dotBottomLeft = vec2f_dot(bottomLeft, GetConstantVector(valueBottomLeft));
 	
 	float u = Fade(xf);
 	float v = Fade(yf);
 	
 	return Lerp(u,
-		Lerp(v, dotBottomLeft, dotTopLeft),
-		Lerp(v, dotBottomRight, dotTopRight)
+		Lerp(v, vec2f_dotBottomLeft, vec2f_dotTopLeft),
+		Lerp(v, vec2f_dotBottomRight, vec2f_dotTopRight)
 	);
 }

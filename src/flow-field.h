@@ -18,7 +18,7 @@ extern int num_particles;
 
 void MakeNoiseGrid();
 void MakeZeroGrid();
-void MakePermutation();
+void noise_init();
 void drawGrid();
 void updateGrid();
 void drawGridDirs();

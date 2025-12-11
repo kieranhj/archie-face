@@ -3,13 +3,14 @@
 // ============================================================================
 
 #include "flow-field.h"
-#include <stdlib.h>
-#include <math.h>
 #include "noise.h"
 #include "../lib/mouse.h"
 #include "../lib/plot.h"
 #include "../lib/trig.h"
 #include "../lib/vector.h"
+
+#include <stdlib.h>
+#include <math.h>
 
 #define _USE_MOUSE_POS_TO_SPAWN             1
 #define _PARTICLE_COLOUR_FROM_DIRECTION     0
@@ -27,7 +28,7 @@ void drawGrid() {
             int x = GRID_OFFX + i*GRID_STEPX;
             int y = GRID_OFFY + j*GRID_STEPY;
 
-            plotPoint(x, y, a);
+            plot_point(x, y, a);
         }
     }
 }
@@ -40,7 +41,7 @@ void drawGridDirs() {
             int y0 = GRID_OFFY + j*GRID_STEPY;
             int dx = cos_fix16(a) >> 14;
             int dy = sin_fix16(a) >> 14;
-            plotLine(x0, y0, x0 + dx, y0 + dy, 255);
+            plot_line(x0, y0, x0 + dx, y0 + dy, 255);
         }
     }
 }
@@ -57,7 +58,7 @@ void plotCurve(int x0, int y0, int num_steps, int col) {
             int x1 = x0 + dx;
             int y1 = y0 + dy;
 
-            plotLine(x0, y0, x1, y1, col);
+            plot_line(x0, y0, x1, y1, col);
 
             x0 = x1;
             y0 = y1;
@@ -73,10 +74,10 @@ void plotParticles() {
 
         if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS) {
             fix16_t a = grid[row_idx*GRID_COLS + col_idx];
-            plotPoint(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), FIX16_TO_INT(a));
+            plot_point(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), FIX16_TO_INT(a));
         }
         #else
-        plotPoint(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), 64 + (i>>2));
+        plot_point(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), 64 + (i>>2));
         #endif
     }
 }
@@ -88,7 +89,7 @@ void moveParticles()
     #if _USE_MOUSE_POS_TO_SPAWN
     int mouseX, mouseY;
     u8 mb;
-    mouseRead(&mouseX, &mouseY, &mb);
+    mouse_read(&mouseX, &mouseY, &mb);
     #endif
 
     for(int i = 0; i < num_particles; i++) {
@@ -106,11 +107,11 @@ void moveParticles()
         }
         else {
             #if _USE_MOUSE_POS_TO_SPAWN
-            particles[i].x = INT_TO_FIX16(mouseX + randomBetween(0,vortex_radius)-vortex_radius/2);
-            particles[i].y = INT_TO_FIX16(mouseY + randomBetween(0,vortex_radius)-vortex_radius/2);
+            particles[i].x = INT_TO_FIX16(mouseX + rand_between(0,vortex_radius)-vortex_radius/2);
+            particles[i].y = INT_TO_FIX16(mouseY + rand_between(0,vortex_radius)-vortex_radius/2);
             #else
-            particles[i].x = INT_TO_FIX16(randomBetween(0,319));
-            particles[i].y = INT_TO_FIX16(randomBetween(0,255));
+            particles[i].x = INT_TO_FIX16(rand_between(0,319));
+            particles[i].y = INT_TO_FIX16(rand_between(0,255));
             #endif
         }
     }
@@ -137,10 +138,10 @@ void MakeZeroGrid() {
 
 void MakeNoiseGrid() {
     // Init.
-    MakePermutation();
+    noise_init();
     for(int i = 0; i < GRID_COLS; i++) {
         for(int j = 0; j < GRID_ROWS; j++) {
-            float n = Noise2D(i * 0.1f, j * 0.1f);  // NOISE SMOOTHING FACTOR
+            float n = noise_sample_2d(i * 0.1f, j * 0.1f);  // NOISE SMOOTHING FACTOR
             n = (n + 1.0f) * 0.5f;
             grid[j*GRID_COLS + i] = FLOAT_TO_FIX16(256*n);
         }
@@ -149,8 +150,8 @@ void MakeNoiseGrid() {
 
 void MakeParticles() {
     for(int i = 0; i < MAX_PARTICLES; i++) {
-        particles[i].x = INT_TO_FIX16(randomBetween(0,319));
-        particles[i].y = INT_TO_FIX16(randomBetween(0,255));
+        particles[i].x = INT_TO_FIX16(rand_between(0,319));
+        particles[i].y = INT_TO_FIX16(rand_between(0,255));
     }
 }
 
@@ -178,7 +179,7 @@ void gridAddAttractor(int x, int y) {
                 // Bend grid angle towards the point.
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
-                float a = FastArcTan2(dy, dx)/(2.0f*M_PI);          // vec from grid point to target (-0.5f, 0.5f]
+                float a = trig_fast_arctan2(dy, dx)/(2.0f*M_PI);          // vec from grid point to target (-0.5f, 0.5f]
 
                 if (a<0.0f) a=1.0f+a;
 
@@ -210,7 +211,7 @@ void gridAddNode(int x, int y, int fx, int fy, int radius) {
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
                                                             // for this to work would need to compute the angle delta.
-                float a = FastArcTan2(fx*dx, fy*dy)/(2*M_PI);  // angle to point.
+                float a = trig_fast_arctan2(fx*dx, fy*dy)/(2*M_PI);  // angle to point.
 
                 if (a<0.0f) a=1.0f+a;
 

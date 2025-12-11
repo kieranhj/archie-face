@@ -9,14 +9,14 @@ static int MouseX;
 static int MouseY;
 static u8 MouseButtons;
 
-void mouseRead(int *mouseX, int *mouseY, u8 *mouseButtons)
+void mouse_read(int *mouseX, int *mouseY, u8 *mouseButtons)
 {
     *mouseX = MouseX;
     *mouseY = MouseY;
     *mouseButtons = MouseButtons;
 }
 
-void mouseUpdate()
+void mouse_tick()
 {
     int x, y, b;
     asm volatile("swi " swiToConst(OS_Mouse) "\n"
