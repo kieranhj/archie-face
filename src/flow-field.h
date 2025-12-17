@@ -5,6 +5,8 @@
 #ifndef __FLOW_FIELD_H__
 #define __FLOW_FIELD_H__
 
+#include "archie/SDKTypes.h"
+
 #define GRID_ROWS       16
 #define GRID_COLS       20
 #define GRID_STEPX      (320/GRID_COLS)
@@ -14,21 +16,27 @@
 
 #define MAX_PARTICLES   1024
 
-extern int num_particles;
+extern int flow_field_num_particles;
+extern u32 flow_field_show_grid;
+extern u32 flow_field_rotate_grid;
 
-void MakeNoiseGrid();
-void MakeZeroGrid();
-void noise_init();
-void drawGrid();
-void updateGrid();
-void drawGridDirs();
-void plotParticles();
-void moveParticles();
-void MakeParticles();
-void KillGrid();
+void flow_field_init();
+void flow_field_init_with_noise();
+void flow_field_init_with_zero();
+void flow_field_rotate_field();
 
-void gridAddAttractor(int x, int y);
-void gridAddNode(int x, int y, int fx, int fy, int radius);
-void plotCurve(int x0, int y0, int num_steps, int col);
+void flow_field_draw();
+void flow_field_draw_grid();
+void flow_field_draw_curve(int x0, int y0, int num_steps, int col);
+
+void flow_field_init_particles();       // random distribution.
+void flow_field_rotate_field_particles();
+void flow_field_draw_particles();
+
+void flow_field_insert_attractor(int x, int y);
+void flow_field_insert_vortex(int x, int y, int fx, int fy, int radius);
+
+void flow_field_debug_add_vortex(u32 param1, u32 param2);
+void flow_field_debug_draw_curve(u32 param1, u32 param2);
 
 #endif // __FLOW_FIELD_H__

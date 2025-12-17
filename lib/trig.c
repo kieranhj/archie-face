@@ -15,7 +15,7 @@ void trig_init() {
     assert(SINUS_TABLE_ENTRIES == 8192);
     for(int i=0; i < SINUS_TABLE_ENTRIES; i++) {
         float r=(float) i / SINUS_TABLE_ENTRIES;
-        float rad=2.0f * M_PI * r;
+        float rad=2.0f * M_PI_F * r;
         sinusTable[i] = FLOAT_TO_FIX16(sinf(rad));
 
         // if ((i&255)==0) printf("[%d] r=%f rad=%f s=%f tab=%08lx\n\r",i,r,rad,sinf(rad),sinusTable[i]);
@@ -41,27 +41,27 @@ float trig_fast_arctan2(float y, float x) {
 			if (y < x) { // 0 .. pi/4
 				return atanf(y / x);
 			} else { // pi/4 .. pi/2
-				return M_PI_2 - atanf(x / y);
+				return M_PI_2_F - atanf(x / y);
 			}
 		} else {
 			if (-y < x) { // -pi/4 .. 0
 				return atanf(y / x);
 			} else { // -pi/2 .. -pi/4
-				return -M_PI_2 - atanf(x / y);
+				return -M_PI_2_F - atanf(x / y);
 			}
 		}
 	} else { // -pi..-pi/2, pi/2..pi
 		if (y >= 0) { // pi/2 .. pi
 			if (y < -x) { // pi*3/4 .. pi
-				return atanf(y / x) + M_PI;
+				return atanf(y / x) + M_PI_F;
 			} else { // pi/2 .. pi*3/4
-				return M_PI_2 - atanf(x / y);
+				return M_PI_2_F - atanf(x / y);
 			}
 		} else { // -pi .. -pi/2
 			if (-y < -x) { // -pi .. -pi*3/4
-				return atanf(y / x) - M_PI;
+				return atanf(y / x) - M_PI_F;
 			} else { // -pi*3/4 .. -pi/2
-				return -M_PI_2 - atanf(x / y);
+				return -M_PI_2_F - atanf(x / y);
 			}
 		}
 	}

@@ -30,6 +30,8 @@
 #include <string.h>
 #include <assert.h>
 
+// ============================================================================
+
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
 volatile int pending_bank = 0;          // updated during interrupt!
@@ -38,23 +40,23 @@ volatile int vsync_count = 0;           // updated during interrupt!
 static int vsync_delta;
 static int last_vsync;
 
-// TODO: Put these somewhere?
+// ============================================================================
+
+// TODO: Put these somewhere? (Or in a debug struct for context passing?)
 static u32 debug_display = 1;
 static u32 debug_do_tick = 1;
 static u32 debug_step = 0;
 u32 debug_rasters = 1;
-static u32 debug_grid = 0;
-static u32 debug_update = 0;
 
 // Main loop vars.
 static int frame_count = 0;
 static int debug_frame_rate;
 static int vsyncs_since_last_count;
 
-// This is very much a debug variable.
-u32 vortex_radius = 50;                 // TODO: Make not global or rename to g_* and have done.
+// ============================================================================
 
-void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4) {
+void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4)
+{
     // TODO: Probably want to preserve all registers used in the event handler?
     (void) event_param3;
     (void) event_param4;
@@ -71,7 +73,8 @@ void eventv_handler(int event_no, int event_param1, int event_param2, int event_
     }
 }
 
-void quit() {
+void quit()
+{
     v_setDisplayBank(write_bank);
     v_setWriteBank(write_bank);
 
@@ -82,7 +85,8 @@ void quit() {
     v_waitForVSync();
 }
 
-void init() {
+void init()
+{
     // Need to init BSS section.
 	extern char __bss_start__[];
 	extern char __bss_end__[];
@@ -107,23 +111,10 @@ void init() {
     atexit(quit);
 }
 
-void MakeVortex(u32 param1, u32 param2) {
-    int mouseX, mouseY;
-    u8 mb;
-    mouse_read(&mouseX, &mouseY, &mb);
-    gridAddNode(mouseX, mouseY, param1, param2, vortex_radius);
-}
+// ============================================================================
 
-void MakeCurve(u32 param1, u32 param2) {
-    (void)param1;
-    (void)param2;
-    int mouseX, mouseY;
-    u8 mb;
-    mouse_read(&mouseX, &mouseY, &mb);
-    plotCurve(mouseX, mouseY, 128, rand_between(64,255));
-}
-
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[])
+{
     // Unused params.
     (void)argc;
     (void)argv;
@@ -142,30 +133,9 @@ int main(int argc, char* argv[]){
     debug_register_key(RMKey_R, debug_toggle_word, (u32)&debug_rasters, 0);
     debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
-    debug_register_key(RMKey_M, MakeParticles, 0, 0);
-    debug_register_key(RMKey_N, MakeNoiseGrid, 0, 0);
-    debug_register_key(RMKey_Z, MakeZeroGrid, 0, 0);
-    debug_register_key(RMKey_V, MakeVortex, 1, -1);
-    debug_register_key(RMKey_B, MakeVortex, -1, 1);
-    debug_register_key(RMKey_C, MakeCurve, 0, 0);
-    debug_register_key(RMKey_G, debug_toggle_word, (u32)&debug_grid, 0);
-    debug_register_key(RMKey_U, debug_toggle_word, (u32)&debug_update, 0);
-    debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&num_particles, 10);
-    debug_register_key(RMKey_ArrowDown, debug_word_add, (u32)&num_particles, -10);
-    debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
-    debug_register_key(RMKey_2, debug_set_word, (u32)&vortex_radius, 40);
-    debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);
-    debug_register_key(RMKey_4, debug_set_word, (u32)&vortex_radius, 80);
-    debug_register_key(RMKey_5, debug_set_word, (u32)&vortex_radius, 100);
-    debug_register_key(RMKey_6, debug_set_word, (u32)&vortex_radius, 120);
-    debug_register_key(RMKey_7, debug_set_word, (u32)&vortex_radius, 140);
-    debug_register_key(RMKey_8, debug_set_word, (u32)&vortex_radius, 160);
-    debug_register_key(RMKey_9, debug_set_word, (u32)&vortex_radius, 180);
 
     // Flow field init.
-    //MakeNoiseGrid();
-    MakeZeroGrid();
-    MakeParticles();
+    flow_field_init();  // inits debug.
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -178,8 +148,8 @@ int main(int argc, char* argv[]){
     // ===============================
     // Main loop.
     // ===============================
-    while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE)){
-
+    while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE))
+    {
         mouse_tick();
         debug_do_keypress_callbacks();
 
@@ -188,12 +158,13 @@ int main(int argc, char* argv[]){
         // ===============================
         // Tick
         // ===============================
-        if (debug_do_tick || debug_step) {
+        if (debug_do_tick || debug_step)
+        {
             debug_step = 0;
 
-            if (debug_update) updateGrid();
+            if (flow_field_rotate_grid) flow_field_rotate_field();
 
-            moveParticles();
+            flow_field_rotate_field_particles();
 
             // Frame rate
             frame_count++;
@@ -227,15 +198,13 @@ int main(int argc, char* argv[]){
         // Draw screen
         SET_BORDER(0x00f0);
 
-        //plotSinCos();
-
-        if (debug_grid) drawGridDirs();
+        if (flow_field_show_grid) flow_field_draw();
 
         //for(int i=0; i < 100; i++) {
-        //    plotCurve(rand_between(0,319), rand_between(0,255), 32, 64+i);
+        //    flow_field_draw_curve(rand_between(0,319), rand_between(0,255), 32, 64+i);
         //}
 
-        plotParticles();
+        flow_field_draw_particles();
         //colour_draw_palette();
 
         // Print some debug info.
@@ -245,10 +214,11 @@ int main(int argc, char* argv[]){
         u8 mb;
         mouse_read(&mouseX, &mouseY, &mb);
 
-        if (debug_display) {
+        if (debug_display)
+        {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-            sprintf(vsync_str, "%d %x %d", debug_frame_rate, mb, num_particles);
+            sprintf(vsync_str, "%d %x %d", debug_frame_rate, mb, flow_field_num_particles);
             debug_plot_string_mode13(vsync_str);
         }
 
@@ -262,9 +232,11 @@ int main(int argc, char* argv[]){
         v_setDisplayBank(write_bank);   // screen won't be displayed until vsync.
     }
 
-    KillGrid();
-
 	return 0;
 }
 
+// ============================================================================
+
 INCBIN(debug_font, "data/lib/Spectrum.bin");
+
+// ============================================================================
