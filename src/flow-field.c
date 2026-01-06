@@ -242,7 +242,7 @@ void flow_field_insert_attractor(int x, int y)
                 // Bend grid angle towards the point.
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
-                float a = trig_fast_arctan2(dy, dx)/(M_PI_2_F);          // vec from grid point to target (-0.5f, 0.5f]
+                float a = trig_fast_arctan2(dy, dx)/(2.0f*M_PI_F);          // vec from grid point to target (-0.5f, 0.5f]
 
                 if (a<0.0f) a=1.0f+a;
 
@@ -275,7 +275,7 @@ void flow_field_insert_vortex(int x, int y, int fx, int fy, int radius)
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
                                                             // for this to work would need to compute the angle delta.
-                float a = trig_fast_arctan2(fx*dx, fy*dy)/(M_PI_2_F);  // angle to point.
+                float a = trig_fast_arctan2(fx*dx, fy*dy)/(2.0f*M_PI_F);  // angle to point.
 
                 if (a<0.0f) a=1.0f+a;
 

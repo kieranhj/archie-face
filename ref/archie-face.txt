@@ -20,7 +20,7 @@ FRAMEWORK:
     => Good practice to use _t for types in C. (Presumably _s for structs.)
     => fix16_t seems the best balance of length and description and compatible with libfixmath fns when I need them.
     => Chris uses full stdint definition (and no typedefs!) unless it's an inbuilt type like int.
-- Need a clean coding style and naming conventions - it's all over the place!!
+- Need a clean coding style and naming conventions - it's all over the place!! - STARTED
 
 Include order: module header, local headers, SDK headers, CLib headers.
 Declaration order: concrete struct, enum.
