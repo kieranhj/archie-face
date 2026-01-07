@@ -14,7 +14,7 @@ APPNAME = grid
 LIBFILES = lib/debug.c lib/mem.c lib/mouse.c lib/plot.c lib/trig.c lib/video.c
 
 # Your source files (.c or .s)
-SRCFILES = main.c src/flow-field.c src/colour.c src/noise.c
+SRCFILES = main.c src/flow-field.c src/colour.c src/noise.c src/emitter.c
 
 # Extra libraries
 LIBS = -lm

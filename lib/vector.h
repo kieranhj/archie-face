@@ -13,7 +13,7 @@ typedef struct vec2f_s {
     float x, y;
 } vec2f;
 
-typedef struct vec2fp_s {
+typedef struct vec2fp_s {       // TODO: Rename vec2fix16_t?
     fix16_t x, y;
 } vec2fp;
 

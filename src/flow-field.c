@@ -13,15 +13,10 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define _USE_MOUSE_POS_TO_SPAWN             1
-#define _PARTICLE_COLOUR_FROM_DIRECTION     0
-
 static u32 vortex_radius = 50;      // debug.
-int flow_field_num_particles = MAX_PARTICLES / 2;
 u32 flow_field_show_grid;
 u32 flow_field_rotate_grid;
 
-static vec2fp particles[MAX_PARTICLES];
 static fix16_t grid[GRID_ROWS * GRID_COLS];
 
 // ============================================================================
@@ -29,9 +24,7 @@ static fix16_t grid[GRID_ROWS * GRID_COLS];
 void flow_field_init()
 {
     flow_field_init_with_zero();
-    flow_field_init_particles();
 
-    debug_register_key(RMKey_M, flow_field_init_particles, 0, 0);
     debug_register_key(RMKey_N, flow_field_init_with_noise, 0, 0);
     debug_register_key(RMKey_Z, flow_field_init_with_zero, 0, 0);
     debug_register_key(RMKey_V, flow_field_debug_add_vortex, 1, -1);
@@ -39,8 +32,6 @@ void flow_field_init()
     debug_register_key(RMKey_C, flow_field_debug_draw_curve, 0, 0);
     debug_register_key(RMKey_G, debug_toggle_word, (u32)&flow_field_show_grid, 0);
     debug_register_key(RMKey_U, debug_toggle_word, (u32)&flow_field_rotate_grid, 0);
-    debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&flow_field_num_particles, 10);
-    debug_register_key(RMKey_ArrowDown, debug_word_add, (u32)&flow_field_num_particles, -10);
     debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
     debug_register_key(RMKey_2, debug_set_word, (u32)&vortex_radius, 40);
     debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);
@@ -110,68 +101,18 @@ void flow_field_draw_curve(int x0, int y0, int num_steps, int col)
 
 // ============================================================================
 
-void flow_field_init_particles()
+int flow_field_get_angle(fix16_t x, fix16_t y, fix16_t *a)
 {
-    for(int i = 0; i < MAX_PARTICLES; i++)
+    int col_idx = FIX16_TO_INT(x) / GRID_STEPX;
+    int row_idx = FIX16_TO_INT(y) / GRID_STEPY;
+
+    if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS)
     {
-        particles[i].x = INT_TO_FIX16(rand_between(0,319));
-        particles[i].y = INT_TO_FIX16(rand_between(0,255));
+        *a = grid[row_idx*GRID_COLS + col_idx];
+        return 1;
     }
-}
-
-void flow_field_rotate_field_particles()
-{
-    #if _USE_MOUSE_POS_TO_SPAWN
-    int mouseX, mouseY;
-    u8 mb;
-    mouse_read(&mouseX, &mouseY, &mb);
-    #endif
-
-    for(int i = 0; i < flow_field_num_particles; i++)
-    {
-        int col_idx = FIX16_TO_INT(particles[i].x) / GRID_STEPX;
-        int row_idx = FIX16_TO_INT(particles[i].y) / GRID_STEPY;
-
-        if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS)
-        {
-            fix16_t a = grid[row_idx*GRID_COLS + col_idx];
-
-            fix16_t dx = cos_fix16(a);             // [-1.0, 1.0]  [s1.16]
-            fix16_t dy = sin_fix16(a);             // [-1.0, 1.0]  [s1.16]
-
-            particles[i].x += FIX16_MUL(dx, FLOAT_TO_FIX16(0.8f));
-            particles[i].y += FIX16_MUL(dy, FLOAT_TO_FIX16(0.8f));
-        }
-        else
-        {
-            #if _USE_MOUSE_POS_TO_SPAWN
-            particles[i].x = INT_TO_FIX16(mouseX + rand_between(0,vortex_radius)-vortex_radius/2);
-            particles[i].y = INT_TO_FIX16(mouseY + rand_between(0,vortex_radius)-vortex_radius/2);
-            #else
-            particles[i].x = INT_TO_FIX16(rand_between(0,319));
-            particles[i].y = INT_TO_FIX16(rand_between(0,255));
-            #endif
-        }
-    }
-}
-
-void flow_field_draw_particles()
-{
-    for(int i = 0; i < flow_field_num_particles; i++)
-    {
-        #if _PARTICLE_COLOUR_FROM_DIRECTION
-        int col_idx = FIX16_TO_INT(particles[i].x) / GRID_STEPX;
-        int row_idx = FIX16_TO_INT(particles[i].y) / GRID_STEPY;
-
-        if (col_idx>=0 && col_idx<GRID_COLS && row_idx>=0 && row_idx<GRID_ROWS)
-        {
-            fix16_t a = grid[row_idx*GRID_COLS + col_idx];
-            plot_point(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), FIX16_TO_INT(a));
-        }
-        #else
-        plot_point(FIX16_TO_INT(particles[i].x), FIX16_TO_INT(particles[i].y), 64 + (i>>2));
-        #endif
-    }
+    
+    return 0;
 }
 
 // ============================================================================

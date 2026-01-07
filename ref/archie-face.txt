@@ -114,7 +114,7 @@ Prototypes to try
 
 TODO:
 - Add emitter objects that generate particles with specific properties
-- Add particle properties?
+- Add particle properties? => Make these emitter properties? Not every particle needs to be unique...
     - Lifetime (or just tick time of creation to avoid having to update these)
     - Colour?
     - Speed?

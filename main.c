@@ -9,6 +9,7 @@
 // App modules.
 #include "src/flow-field.h"
 #include "src/colour.h"
+#include "src/emitter.h"
 
 // My libraries. :)
 #include "lib/debug.h"
@@ -137,6 +138,11 @@ int main(int argc, char* argv[])
     // Flow field init.
     flow_field_init();  // inits debug.
 
+    // Particle emitters.
+    emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
+    emitter_t *emitter2 = emitter_make(250, 0.8f, 255, 256, 256, 25);
+    emitter_set_mouse(emitter2, 1);
+
     // Triple screen buffering.
     displayed_bank = 0;
     pending_bank = 1;   // display next vsync.
@@ -164,7 +170,8 @@ int main(int argc, char* argv[])
 
             if (flow_field_rotate_grid) flow_field_rotate_field();
 
-            flow_field_rotate_field_particles();
+            emitter_tick(emitter1);
+            emitter_tick(emitter2);
 
             // Frame rate
             frame_count++;
@@ -200,12 +207,9 @@ int main(int argc, char* argv[])
 
         if (flow_field_show_grid) flow_field_draw();
 
-        //for(int i=0; i < 100; i++) {
-        //    flow_field_draw_curve(rand_between(0,319), rand_between(0,255), 32, 64+i);
-        //}
-
-        flow_field_draw_particles();
         //colour_draw_palette();
+        emitter_draw(emitter1);
+        emitter_draw(emitter2);
 
         // Print some debug info.
         SET_BORDER(0x0fff);
@@ -218,7 +222,7 @@ int main(int argc, char* argv[])
         {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
-            sprintf(vsync_str, "%d %x %d", debug_frame_rate, mb, flow_field_num_particles);
+            sprintf(vsync_str, "%d %x", debug_frame_rate, mb);
             debug_plot_string_mode13(vsync_str);
         }
 
@@ -231,6 +235,9 @@ int main(int argc, char* argv[])
         pending_bank = write_bank;
         v_setDisplayBank(write_bank);   // screen won't be displayed until vsync.
     }
+
+    emitter1 = emitter_kill(emitter1);
+    emitter2 = emitter_kill(emitter2);
 
 	return 0;
 }
