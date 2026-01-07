@@ -26,7 +26,8 @@ struct emitter_s
     u8          colour;
     u8          mouse;      // Use mouse pos.
     fix16_t     speed;
-    fix16_t     ox, oy;     // TODO: Replace with vec2fp.
+    vec2fp      origin;
+    vec2fp      offset;
     // TODO: Offset (normalise?)
     int         radius;
     particle_t  particles[0];
@@ -34,8 +35,8 @@ struct emitter_s
 
 static inline void emitter_particle_init(emitter_t *e, particle_t *p)
 {
-    p->x = e->ox + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
-    p->y = e->oy + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
 }
 
 // TODO: Debug.
@@ -50,8 +51,10 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->colour = colour;
     emitter->mouse = 0;
     emitter->speed = FLOAT_TO_FIX16(speed);
-    emitter->ox = INT_TO_FIX16(ox);
-    emitter->oy = INT_TO_FIX16(oy);
+    emitter->origin.x = INT_TO_FIX16(ox);
+    emitter->origin.y = INT_TO_FIX16(oy);
+    emitter->offset.x = 0;
+    emitter->offset.y = 0;
     emitter->radius = radius;
 
     for(int i = 0; i < max_particles; i++)
@@ -63,15 +66,21 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     return emitter;
 }
 
+void *emitter_kill(emitter_t *emitter)
+{
+    free(emitter);
+    return NULL;
+}
+
 void emitter_set_mouse(emitter_t *emitter, int mouse)
 {
     emitter->mouse = mouse;
 }
 
-void *emitter_kill(emitter_t *emitter)
+void emitter_set_offset(emitter_t *emitter, float offx, float offy)
 {
-    free(emitter);
-    return NULL;
+    emitter->offset.x = FLOAT_TO_FIX16(offx);
+    emitter->offset.y = FLOAT_TO_FIX16(offy);
 }
 
 void emitter_tick(emitter_t *emitter)
@@ -81,9 +90,12 @@ void emitter_tick(emitter_t *emitter)
         int mouseX, mouseY;
         u8 mb;
         mouse_read(&mouseX, &mouseY, &mb);
-        emitter->ox = INT_TO_FIX16(mouseX);
-        emitter->oy = INT_TO_FIX16(mouseY);
+        emitter->origin.x = INT_TO_FIX16(mouseX);
+        emitter->origin.y = INT_TO_FIX16(mouseY);
     }
+
+    fix16_t offx = emitter->offset.x;
+    fix16_t offy = emitter->offset.y;
 
     for(int i = 0; i < emitter->max_particles; i++)
     {
@@ -95,8 +107,8 @@ void emitter_tick(emitter_t *emitter)
             fix16_t dx = cos_fix16(a);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a);             // [-1.0, 1.0]  [s1.16]
 
-            p->x += FIX16_MUL(dx, emitter->speed);
-            p->y += FIX16_MUL(dy, emitter->speed);
+            p->x += FIX16_MUL(dx, emitter->speed) + offx;
+            p->y += FIX16_MUL(dy, emitter->speed) + offy;
         }
         else
         {

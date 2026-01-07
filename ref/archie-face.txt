@@ -113,9 +113,14 @@ Prototypes to try
     - Rotate the field (add a fixed offset to the table value in the loop)
 
 TODO:
-- Add emitter objects that generate particles with specific properties
+- Add emitter objects that generate particles with specific properties - DONE
 - Add particle properties? => Make these emitter properties? Not every particle needs to be unique...
     - Lifetime (or just tick time of creation to avoid having to update these)
-    - Colour?
-    - Speed?
-    - Offset vector.
+    - Colour? - PER EMITTER
+    - Speed? - PER EMITTER
+    - Offset vector. - PER EMITTER
+- Update emitter properties per tick w/ callback fn.
+- Instance flow fields.
+- Allow them to be added together to affect the particles.
+- Or attach different emitters to different fields?
+- Rotate and offset fields.

@@ -9,9 +9,11 @@
 
 typedef struct emitter_s emitter_t;
 
-emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int oy, int radius);
-void emitter_set_mouse(emitter_t *emitter, int attach);
+emitter_t *emitter_make(int max_particles, float speed, u8 colour, int originx, int originy, int radius);
 void *emitter_kill(emitter_t *emitter);
+
+void emitter_set_mouse(emitter_t *emitter, int attach);
+void emitter_set_offset(emitter_t *emitter, float offx, float offy);
 
 void emitter_tick(emitter_t *emitter);
 void emitter_draw(emitter_t *emitter);

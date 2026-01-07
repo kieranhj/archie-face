@@ -140,7 +140,8 @@ int main(int argc, char* argv[])
 
     // Particle emitters.
     emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
-    emitter_t *emitter2 = emitter_make(250, 0.8f, 255, 256, 256, 25);
+    emitter_set_offset(emitter1, -0.5f, 0.0f);
+    emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 25);
     emitter_set_mouse(emitter2, 1);
 
     // Triple screen buffering.

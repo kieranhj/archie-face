@@ -152,7 +152,7 @@ void flow_field_rotate_field()
         for(int j = 0; j < GRID_ROWS; j++)
         {
             fix16_t a = grid[j*GRID_COLS + i];
-            grid[j*GRID_COLS + i] = (a + FIX16_ONE) & INT_TO_FIX16(255);
+            grid[j*GRID_COLS + i] = (a + FIX16_ONE) & INT_TO_FIX16(255);    // Or just add a fixed offset at lookup!
         }
     }
 }

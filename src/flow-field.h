@@ -27,10 +27,6 @@ void flow_field_draw();
 void flow_field_draw_grid();
 void flow_field_draw_curve(int x0, int y0, int num_steps, int col);
 
-void flow_field_init_particles();       // random distribution.
-void flow_field_tick_particles();
-void flow_field_draw_particles();
-
 void flow_field_insert_attractor(int x, int y);
 void flow_field_insert_vortex(int x, int y, int fx, int fy, int radius);
 
