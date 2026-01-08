@@ -28,10 +28,7 @@ void trig_init()
 // returns sin(brad) also in fixed point s15.16 format.
 fix16_t sin_fix16(fix16_t brad)
 {
-    int i=(brad >> 11) & (SINUS_TABLE_ENTRIES-1);
-    int v=sinusTable[i];
-    //printf("sin_fp(%08lx)=%08lx i=%d\n\r", brad, v, i);
-    return v;
+    return sinusTable[(brad >> 11) & (SINUS_TABLE_ENTRIES-1)];
 }
 
 fix16_t cos_fix16(fix16_t brad)

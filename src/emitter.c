@@ -28,8 +28,8 @@ struct emitter_s
     fix16_t     speed;
     vec2fp      origin;
     vec2fp      offset;
-    // TODO: Offset (normalise?)
     int         radius;
+    flow_field_t *field;
     particle_t  particles[0];
 };
 
@@ -56,6 +56,7 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->offset.x = 0;
     emitter->offset.y = 0;
     emitter->radius = radius;
+    emitter->field = NULL;
 
     for(int i = 0; i < max_particles; i++)
     {
@@ -83,6 +84,11 @@ void emitter_set_offset(emitter_t *emitter, float offx, float offy)
     emitter->offset.y = FLOAT_TO_FIX16(offy);
 }
 
+void emitter_set_field(emitter_t *emitter, flow_field_t *field)
+{
+    emitter->field = field;
+}
+
 void emitter_tick(emitter_t *emitter)
 {
     if (emitter->mouse)
@@ -96,19 +102,21 @@ void emitter_tick(emitter_t *emitter)
 
     fix16_t offx = emitter->offset.x;
     fix16_t offy = emitter->offset.y;
+    fix16_t speed = emitter->speed;
+    flow_field_t *f = emitter->field;
 
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
         fix16_t a;
         
-        if (flow_field_get_angle(p->x, p->y, &a))
+        if (flow_field_get_angle(f, p->x, p->y, &a))
         {
             fix16_t dx = cos_fix16(a);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a);             // [-1.0, 1.0]  [s1.16]
 
-            p->x += FIX16_MUL(dx, emitter->speed) + offx;
-            p->y += FIX16_MUL(dy, emitter->speed) + offy;
+            p->x += FIX16_MUL(dx, speed) + offx;
+            p->y += FIX16_MUL(dy, speed) + offy;
         }
         else
         {

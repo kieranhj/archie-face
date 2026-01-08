@@ -136,13 +136,16 @@ int main(int argc, char* argv[])
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
 
     // Flow field init.
-    flow_field_init();  // inits debug.
+    flow_field_t *field1 = flow_field_make(20, 16);
+    flow_field_init(field1);  // inits debug.
 
     // Particle emitters.
     emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
     emitter_set_offset(emitter1, -0.5f, 0.0f);
+    emitter_set_field(emitter1, field1);
     emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 25);
     emitter_set_mouse(emitter2, 1);
+    emitter_set_field(emitter2, field1);
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -169,7 +172,7 @@ int main(int argc, char* argv[])
         {
             debug_step = 0;
 
-            if (flow_field_rotate_grid) flow_field_rotate_field();
+            if (flow_field_rotate_grid) flow_field_rotate_field(field1, FLOAT_TO_FIX16(1.0f));
 
             emitter_tick(emitter1);
             emitter_tick(emitter2);
@@ -206,7 +209,7 @@ int main(int argc, char* argv[])
         // Draw screen
         SET_BORDER(0x00f0);
 
-        if (flow_field_show_grid) flow_field_draw();
+        if (flow_field_show_grid) flow_field_draw(field1);
 
         //colour_draw_palette();
         emitter_draw(emitter1);
@@ -239,6 +242,7 @@ int main(int argc, char* argv[])
 
     emitter1 = emitter_kill(emitter1);
     emitter2 = emitter_kill(emitter2);
+    field1 = flow_field_kill(field1);
 
 	return 0;
 }

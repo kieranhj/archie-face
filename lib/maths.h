@@ -21,5 +21,6 @@ typedef int32_t fix16_t;
 
 #define FIX16_MUL(a,b)          (fix16_t)(((a)>>8)*((b)>>8))
 #define FIX16_DIV(a,b)          (fix16_t)(((a)<<8)/((b)<<8))
+#define FIX16_FRACTION(a,b)     (fix16_t)(((a)<<16)/(b))
 
 #endif // __MATHS_H__
