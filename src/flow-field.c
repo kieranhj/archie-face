@@ -13,6 +13,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+
+#define FF_ANGLE_FIX16(f,i,j)       ((f)->angle[(j)*(f)->cols+(i)])
+#define ONE_OVER_TWO_TIMES_PI       (1.0f/(2.0f*M_PI_F))
+
+
 static u32 vortex_radius = 50;      // debug.
 u32 flow_field_show_grid;
 u32 flow_field_rotate_grid;
@@ -22,7 +27,7 @@ static flow_field_t *flow_field_debug_grid;
 struct flow_field_s {
     int     cols, rows;
     int     step_x, step_y;
-    // TODO: rows_per_pixel, cols_per_pixel. Use FIX16_FRACTION(rows,256)
+    fix16_t rows_per_pixel, cols_per_pixel;
     fix16_t angle[0];  
 };
 
@@ -63,7 +68,8 @@ flow_field_t *flow_field_make(int cols, int rows)
     grid->rows = rows;
     grid->step_x = 320 / cols;
     grid->step_y = 256 / rows;
-    grid->cols_per_pixel = FIX16_DIV(cols, 320);
+    grid->cols_per_pixel = FIX16_FRACTION(cols, 320);
+    grid->rows_per_pixel = FIX16_FRACTION(rows, 256);
     
     flow_field_init_with_angle(grid, INT_TO_FIX16(32));
 
@@ -84,7 +90,7 @@ void flow_field_draw_grid(flow_field_t *grid)
     {
         for(int j = 0; j < grid->rows; j++)
         {
-            int a = FIX16_TO_INT(grid->angle[j*grid->cols + i]);
+            int a = FIX16_TO_INT(FF_ANGLE_FIX16(grid,i,j));
             int x = GRID_OFFX + i*grid->step_x;
             int y = GRID_OFFY + j*grid->step_y;
 
@@ -99,7 +105,7 @@ void flow_field_draw(flow_field_t *grid)
     {
         for(int j = 0; j < grid->rows; j++)
         {
-            fix16_t a = grid->angle[j*grid->cols + i];
+            fix16_t a = FF_ANGLE_FIX16(grid,i,j);
             int x0 = GRID_OFFX + i*grid->step_x;
             int y0 = GRID_OFFY + j*grid->step_y;
             int dx = cos_fix16(a) >> 14;
@@ -113,12 +119,12 @@ void flow_field_draw_curve(flow_field_t *grid, int x0, int y0, int num_steps, in
 {
     for(int i = 0; i < num_steps; i++)
     {
-        int col_idx = x0 / grid->step_x;
-        int row_idx = y0 / grid->step_y;
+        int col_idx = FIX16_TO_INT(x0 * grid->cols_per_pixel);    // BROKEN?
+        int row_idx = FIX16_TO_INT(y0 * grid->rows_per_pixel);
 
         if (col_idx>=0 && col_idx<grid->cols && row_idx>=0 && row_idx<grid->rows)
         {
-            fix16_t a = grid->angle[row_idx*grid->cols + col_idx];
+            fix16_t a = FF_ANGLE_FIX16(grid,col_idx,row_idx);
             int dx = cos_fix16(a) >> 14;
             int dy = sin_fix16(a) >> 14;
             int x1 = x0 + dx;
@@ -136,12 +142,12 @@ void flow_field_draw_curve(flow_field_t *grid, int x0, int y0, int num_steps, in
 
 inline int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a)
 {
-    int col_idx = FIX16_TO_INT(x) / grid->step_x;   // TODO: Turn in to mul.
-    int row_idx = FIX16_TO_INT(y) / grid->step_y;
+    int col_idx = FIX16_TO_INT(FIX16_MUL(x, grid->cols_per_pixel));
+    int row_idx = FIX16_TO_INT(FIX16_MUL(y, grid->rows_per_pixel));
 
     if (col_idx>=0 && col_idx<grid->cols && row_idx>=0 && row_idx<grid->rows)
     {
-        *a = grid->angle[row_idx*grid->cols + col_idx];
+        *a = FF_ANGLE_FIX16(grid,col_idx,row_idx);//grid->angle[row_idx*grid->cols + col_idx];
         return 1;
     }
 
@@ -159,7 +165,8 @@ void flow_field_init_with_angle(flow_field_t *grid, fix16_t angle)
     {
         for(int j = 0; j < grid->rows; j++)
         {
-            grid->angle[j*grid->cols + i] = angle;
+            FF_ANGLE_FIX16(grid,i,j) = angle;
+            //grid->angle[j*grid->cols + i] = angle;
         }
     }
 }
@@ -174,7 +181,7 @@ void flow_field_init_with_noise(flow_field_t *grid, float smoothing)    // 0.1f
         {
             float n = noise_sample_2d(i * smoothing, j * smoothing);  // NOISE SMOOTHING FACTOR
             n = (n + 1.0f) * 0.5f;
-            grid->angle[j*grid->cols + i] = FLOAT_TO_FIX16(256*n); // TODO: Optimise.
+            FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(256*n); // TODO: Optimise.
         }
     }
 }
@@ -186,7 +193,7 @@ void flow_field_rotate_field(flow_field_t *grid, fix16_t angle)
         for(int j = 0; j < grid->rows; j++)
         {
             fix16_t a = grid->angle[j*grid->cols + i];
-            grid->angle[j*grid->cols + i] = (a + angle) & INT_TO_FIX16(255);    // Or just add a fixed offset at lookup!
+            FF_ANGLE_FIX16(grid,i,j) = (a + angle) & INT_TO_FIX16(255);    // Or just add a fixed offset at lookup!
         }
     }
 }
@@ -217,11 +224,11 @@ void flow_field_insert_attractor(flow_field_t *grid, int x, int y, int radius)
                 // Bend grid angle towards the point.
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
-                float a = trig_fast_arctan2(dy, dx)/(2.0f*M_PI_F);          // vec from grid point to target (-0.5f, 0.5f]
+                float a = trig_fast_arctan2(dy, dx) * ONE_OVER_TWO_TIMES_PI;          // vec from grid point to target (-0.5f, 0.5f]
 
                 if (a<0.0f) a=1.0f+a;
 
-                grid->angle[j*grid->cols + i] = FLOAT_TO_FIX16(256*a*f);
+                FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(256*a*f);
             }
         }
     }
@@ -233,8 +240,10 @@ void flow_field_insert_vortex(flow_field_t *grid, int x, int y, int fx, int fy, 
     float r = radius;
     float r2 = r*r;
 
-    for(int i = 0; i < grid->cols; i++) {
-        for(int j = 0; j < grid->cols; j++) {
+    for(int i = 0; i < grid->cols; i++)
+    {
+        for(int j = 0; j < grid->rows; j++)
+        {
             // Grid point.
             int gx = i * grid->step_x;
             int gy = j * grid->step_y;
@@ -250,11 +259,11 @@ void flow_field_insert_vortex(flow_field_t *grid, int x, int y, int fx, int fy, 
 
                 float f = 1.0f;// - sqrtf(d2)/r;             // f=1.0 at 0 and f=0.0 at r.
                                                             // for this to work would need to compute the angle delta.
-                float a = trig_fast_arctan2(fx*dx, fy*dy)/(2.0f*M_PI_F);  // angle to point.
+                float a = trig_fast_arctan2(fx*dx, fy*dy) * ONE_OVER_TWO_TIMES_PI;  // angle to point.
 
                 if (a<0.0f) a=1.0f+a;
 
-                grid->angle[j*grid->cols + i] = FLOAT_TO_FIX16(256*a*f);
+                FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(256*a*f);
             }
         }
     }

@@ -4,7 +4,8 @@
 
 #include "mem.h"
 
-//make sure that dest is aligned and size (in bytes) can be divided by 40; feel free to re-use this in other projects :)
+// Make sure that dest is aligned and size (in bytes) can be divided by 40; feel free to re-use this in other projects :)
+// TODO: Hand-rolled fastest possible screen clear.
 void __attribute__((noinline)) mem_set_fast(u32* dest, u32 c, u32 size)
 {
     asm volatile("push {%0, %1}\n"
