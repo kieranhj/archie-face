@@ -33,10 +33,30 @@ struct flow_field_s {
 
 // ============================================================================
 
-void flow_field_debug_add_vortex(u32 param1, u32 param2);
-void flow_field_debug_draw_curve(u32 param1, u32 param2);
-void flow_field_debug_init_with_angle(u32 param1, u32 param2);
-void flow_field_debug_init_with_noise(u32 param1, u32 param2);
+static void flow_field_debug_add_vortex(u32 param1, u32 param2);
+static void flow_field_debug_draw_curve(u32 param1, u32 param2);
+static void flow_field_debug_init_with_angle(u32 param1, u32 param2);
+static void flow_field_debug_init_with_noise(u32 param1, u32 param2);
+
+// ============================================================================
+
+inline int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a)
+{
+    int col_idx = FIX16_TO_INT(FIX16_MUL(x, grid->cols_per_pixel));
+    int row_idx = FIX16_TO_INT(FIX16_MUL(y, grid->rows_per_pixel));
+
+    if (col_idx>=0 && col_idx<grid->cols && row_idx>=0 && row_idx<grid->rows)
+    {
+        *a = FF_ANGLE_FIX16(grid,col_idx,row_idx);
+        return 1;
+    }
+
+    // TODO: Wrap?
+    
+    return 0;
+}
+
+// ============================================================================
 
 void flow_field_init(flow_field_t *debug_field)
 {
@@ -117,43 +137,32 @@ void flow_field_draw(flow_field_t *grid)
 
 void flow_field_draw_curve(flow_field_t *grid, int x0, int y0, int num_steps, int col)
 {
+    const fix16_t step_size = INT_TO_FIX16(4);
+    fix16_t x=INT_TO_FIX16(x0);
+    fix16_t y=INT_TO_FIX16(y0);
+
     for(int i = 0; i < num_steps; i++)
     {
-        int col_idx = FIX16_TO_INT(x0 * grid->cols_per_pixel);    // BROKEN?
-        int row_idx = FIX16_TO_INT(y0 * grid->rows_per_pixel);
+        fix16_t a;
 
-        if (col_idx>=0 && col_idx<grid->cols && row_idx>=0 && row_idx<grid->rows)
+        if (flow_field_get_angle(grid, x, y, &a))
         {
-            fix16_t a = FF_ANGLE_FIX16(grid,col_idx,row_idx);
-            int dx = cos_fix16(a) >> 14;
-            int dy = sin_fix16(a) >> 14;
-            int x1 = x0 + dx;
-            int y1 = y0 + dy;
+            fix16_t dx = FIX16_MUL(cos_fix16(a), step_size);
+            fix16_t dy = FIX16_MUL(sin_fix16(a), step_size);
 
-            plot_line(x0, y0, x1, y1, col);
+            fix16_t x1 = x + dx;
+            fix16_t y1 = y + dy;
 
-            x0 = x1;
-            y0 = y1;
+            plot_line(FIX16_TO_INT(x), FIX16_TO_INT(y), FIX16_TO_INT(x1), FIX16_TO_INT(y1), col);
+
+            x = x1;
+            y = y1;
+        }
+        else
+        {
+            break;
         }
     }
-}
-
-// ============================================================================
-
-inline int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a)
-{
-    int col_idx = FIX16_TO_INT(FIX16_MUL(x, grid->cols_per_pixel));
-    int row_idx = FIX16_TO_INT(FIX16_MUL(y, grid->rows_per_pixel));
-
-    if (col_idx>=0 && col_idx<grid->cols && row_idx>=0 && row_idx<grid->rows)
-    {
-        *a = FF_ANGLE_FIX16(grid,col_idx,row_idx);//grid->angle[row_idx*grid->cols + col_idx];
-        return 1;
-    }
-
-    // TODO: Wrap?
-    
-    return 0;
 }
 
 // ============================================================================
@@ -166,7 +175,6 @@ void flow_field_init_with_angle(flow_field_t *grid, fix16_t angle)
         for(int j = 0; j < grid->rows; j++)
         {
             FF_ANGLE_FIX16(grid,i,j) = angle;
-            //grid->angle[j*grid->cols + i] = angle;
         }
     }
 }
@@ -186,6 +194,7 @@ void flow_field_init_with_noise(flow_field_t *grid, float smoothing)    // 0.1f
     }
 }
 
+#if 0
 void flow_field_rotate_field(flow_field_t *grid, fix16_t angle)
 {
     for(int i = 0; i < grid->cols; i++)
@@ -197,6 +206,7 @@ void flow_field_rotate_field(flow_field_t *grid, fix16_t angle)
         }
     }
 }
+#endif
 
 // ============================================================================
 
@@ -271,7 +281,7 @@ void flow_field_insert_vortex(flow_field_t *grid, int x, int y, int fx, int fy, 
 
 // ============================================================================
 
-void flow_field_debug_add_vortex(u32 param1, u32 param2)
+static void flow_field_debug_add_vortex(u32 param1, u32 param2)
 {
     int mouseX, mouseY;
     u8 mb;
@@ -279,7 +289,7 @@ void flow_field_debug_add_vortex(u32 param1, u32 param2)
     flow_field_insert_vortex(flow_field_debug_grid, mouseX, mouseY, param1, param2, vortex_radius);
 }
 
-void flow_field_debug_draw_curve(u32 param1, u32 param2)
+static void flow_field_debug_draw_curve(u32 param1, u32 param2)
 {
     (void)param1;
     (void)param2;
@@ -289,13 +299,13 @@ void flow_field_debug_draw_curve(u32 param1, u32 param2)
     flow_field_draw_curve(flow_field_debug_grid, mouseX, mouseY, 128, rand_between(64,255));
 }
 
-void flow_field_debug_init_with_angle(u32 param1, u32 param2)
+static void flow_field_debug_init_with_angle(u32 param1, u32 param2)
 {
     (void)param2;
     flow_field_init_with_angle(flow_field_debug_grid, (fix16_t)param1);
 }
 
-void flow_field_debug_init_with_noise(u32 param1, u32 param2)
+static void flow_field_debug_init_with_noise(u32 param1, u32 param2)
 {
     (void)param1;
     (void)param2;

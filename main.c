@@ -144,7 +144,9 @@ int main(int argc, char* argv[])
     emitter_set_offset(emitter1, -0.5f, 0.0f);
     emitter_set_field(emitter1, field1);
     emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 25);
+    float emitter2_rot = 0.0f;
     emitter_set_mouse(emitter2, 1);
+    emitter_set_rotation(emitter2, emitter2_rot);
     emitter_set_field(emitter2, field1);
 
     // Triple screen buffering.
@@ -172,7 +174,7 @@ int main(int argc, char* argv[])
         {
             debug_step = 0;
 
-            if (flow_field_rotate_grid) flow_field_rotate_field(field1, FLOAT_TO_FIX16(1.0f));
+            if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
 
             emitter_tick(emitter1);
             emitter_tick(emitter2);

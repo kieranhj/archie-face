@@ -98,9 +98,9 @@ Prototypes to try
 - Speed:
     - Different particles moving at different speeds - slow things down!
 - Movement:
-    - Adding another preferred constant vector to the direction (per particle - or const per emitter if that's quicker in the loop).
+    - Adding another preferred constant vector to the direction (per particle - or const per emitter if that's quicker in the loop). - DONE
 - Visualising the flow field.
-    - Drawing lines along the flow field.
+    - Drawing lines along the flow field. - AVAILABLE
 - Sprites:
     - Drawing sprites on the flow field not points.
 - Updating the flow field:
@@ -120,7 +120,7 @@ TODO:
     - Speed? - PER EMITTER
     - Offset vector. - PER EMITTER
 - Update emitter properties per tick w/ callback fn.
-- Instance flow fields.
+- Instance flow fields. - DONE
 - Allow them to be added together to affect the particles.
 - Or attach different emitters to different fields?
 - Rotate and offset fields.
