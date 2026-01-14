@@ -7,6 +7,7 @@
 
 #include "archie/SDKTypes.h"
 #include "flow-field.h"
+#include "../lib/vector.h"
 
 typedef struct emitter_s emitter_t;
 
@@ -15,8 +16,9 @@ void *emitter_kill(emitter_t *emitter);
 
 void emitter_set_field(emitter_t *emitter, flow_field_t *field);
 void emitter_set_mouse(emitter_t *emitter, int attach);
-void emitter_set_offset(emitter_t *emitter, float offx, float offy);
-void emitter_set_rotation(emitter_t *emitter, float rot);
+void emitter_set_origin(emitter_t *emitter, vec2fix16_t origin);
+void emitter_set_delta(emitter_t *emitter, vec2fix16_t delta);
+void emitter_set_rotation(emitter_t *emitter, float rot);       // Or fix16 brad?
 
 void emitter_tick(emitter_t *emitter);
 void emitter_draw(emitter_t *emitter);

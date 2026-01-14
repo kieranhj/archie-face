@@ -119,7 +119,7 @@ TODO:
     - Colour? - PER EMITTER
     - Speed? - PER EMITTER
     - Offset vector. - PER EMITTER
-- Update emitter properties per tick w/ callback fn.
+- Update emitter properties per tick w/ callback fn. - just update in tick.
 - Instance flow fields. - DONE
 - Allow them to be added together to affect the particles.
 - Or attach different emitters to different fields?

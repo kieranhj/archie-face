@@ -135,19 +135,23 @@ int main(int argc, char* argv[])
     debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
 
-    // Flow field init.
-    flow_field_t *field1 = flow_field_make(20, 16);
-    flow_field_init(field1);  // inits debug.
+    // FX init.
 
-    // Particle emitters.
-    emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
-    emitter_set_offset(emitter1, -0.5f, 0.0f);
-    emitter_set_field(emitter1, field1);
-    emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 25);
-    float emitter2_rot = 0.0f;
-    emitter_set_mouse(emitter2, 1);
-    emitter_set_rotation(emitter2, emitter2_rot);
-    emitter_set_field(emitter2, field1);
+        // Flow field init.
+        flow_field_t *field1 = flow_field_make(20, 16);
+        flow_field_init(field1);  // inits debug.
+
+        // Setup Particle emitters.
+        emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
+        vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(160), .y=INT_TO_FIX16(128)};
+        emitter_set_delta(emitter1, (vec2fix16_t){.x=FLOAT_TO_FIX16(-0.5f), .y=FLOAT_TO_FIX16(0.0f)});
+        emitter_set_field(emitter1, field1);
+
+        emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 30);
+        float emitter2_rot = 0.0f;
+        emitter_set_mouse(emitter2, 1);
+        emitter_set_rotation(emitter2, emitter2_rot);
+        emitter_set_field(emitter2, field1);
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -174,10 +178,21 @@ int main(int argc, char* argv[])
         {
             debug_step = 0;
 
-            if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
+            // FX tick.
+            {
+                if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
 
-            emitter_tick(emitter1);
-            emitter_tick(emitter2);
+                // Update any emitter properties.
+                fix16_t a = INT_TO_FIX16(frame_count);  // Use frame count as brad.
+                fix16_t r = INT_TO_FIX16(80);           // Radius
+                emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(a), r);
+                emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(a), r);
+                emitter_set_origin(emitter1, emitter1_pos);
+
+                // Tick the emitters to move the particles.
+                emitter_tick(emitter1);
+                emitter_tick(emitter2);
+            }
 
             // Frame rate
             frame_count++;
@@ -211,11 +226,14 @@ int main(int argc, char* argv[])
         // Draw screen
         SET_BORDER(0x00f0);
 
-        if (flow_field_show_grid) flow_field_draw(field1);
+        // FX draw.
+        {
+            if (flow_field_show_grid) flow_field_draw(field1);
 
-        //colour_draw_palette();
-        emitter_draw(emitter1);
-        emitter_draw(emitter2);
+            //colour_draw_palette();
+            emitter_draw(emitter1);
+            emitter_draw(emitter2);
+        }
 
         // Print some debug info.
         SET_BORDER(0x0fff);

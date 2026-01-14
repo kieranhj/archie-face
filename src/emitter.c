@@ -1,6 +1,6 @@
 // ============================================================================
 // Particle Emitter.
-// TODO: Make sure only used features are paid for at runtime, eg. offset, rotation etc.
+// TODO: Make sure only used features are paid for at runtime, eg. delta, rotation etc.
 // ============================================================================
 
 #include "emitter.h"
@@ -17,22 +17,22 @@ typedef struct particle_s particle_t;
 
 struct particle_s
 {
-    fix16_t x;  // TODO: Use vec2fp?
+    fix16_t x;  // TODO: Use vec2fix16_t?
     fix16_t y;
 };
 
 struct emitter_s
 {
-    int         max_particles;
-    u8          colour;
-    u8          mouse;      // Use mouse pos.
-    fix16_t     speed;
-    vec2fp      origin;
-    vec2fp      offset;
-    fix16_t     rotation;
-    int         radius;
-    flow_field_t *field;
-    particle_t  particles[0];
+    int             max_particles;
+    u8              colour;
+    u8              mouse;      // Use mouse pos.
+    fix16_t         speed;
+    vec2fix16_t     origin;
+    vec2fix16_t     delta;
+    fix16_t         rotation;
+    int             radius;
+    flow_field_t *  field;
+    particle_t      particles[0];
 };
 
 static inline void emitter_particle_init(emitter_t *e, particle_t *p)
@@ -55,8 +55,8 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->speed = FLOAT_TO_FIX16(speed);
     emitter->origin.x = INT_TO_FIX16(ox);
     emitter->origin.y = INT_TO_FIX16(oy);
-    emitter->offset.x = 0;
-    emitter->offset.y = 0;
+    emitter->delta.x = 0;
+    emitter->delta.y = 0;
     emitter->rotation = 0;
     emitter->radius = radius;
     emitter->field = NULL;
@@ -81,10 +81,16 @@ void emitter_set_mouse(emitter_t *emitter, int mouse)
     emitter->mouse = mouse;
 }
 
-void emitter_set_offset(emitter_t *emitter, float offx, float offy)
+void emitter_set_origin(emitter_t *emitter, vec2fix16_t origin)
 {
-    emitter->offset.x = FLOAT_TO_FIX16(offx);
-    emitter->offset.y = FLOAT_TO_FIX16(offy);
+    emitter->origin.x = origin.x;
+    emitter->origin.y = origin.y;
+}
+
+void emitter_set_delta(emitter_t *emitter, vec2fix16_t delta)
+{
+    emitter->delta.x = delta.x;
+    emitter->delta.y = delta.y;
 }
 
 void emitter_set_rotation(emitter_t *emitter, float rot)
@@ -108,8 +114,8 @@ void emitter_tick(emitter_t *emitter)
         emitter->origin.y = INT_TO_FIX16(mouseY);
     }
 
-    fix16_t offx = emitter->offset.x;
-    fix16_t offy = emitter->offset.y;
+    fix16_t offx = emitter->delta.x;
+    fix16_t offy = emitter->delta.y;
     fix16_t speed = emitter->speed;
     flow_field_t *f = emitter->field;
     fix16_t rotation = emitter->rotation;

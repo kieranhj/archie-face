@@ -9,15 +9,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define VEC2FIX16_INIT_FROM_INT(x,y)    {.x=INT_TO_FIX16(x), .y=INT_TO_FIX16(y)}
+#define VEC2FIX16_INIT_FROM_FLOAT(x,y)  {.x=FLOAT_TO_FIX16(x), .y=FLOAT_TO_FIX16(y)}
+
 typedef struct vec2f_s {
     float x, y;
 } vec2f;
 
-typedef struct vec2fp_s {       // TODO: Rename vec2fix16_t?
+typedef struct vec2fix16_s {
     fix16_t x, y;
-} vec2fp;
+} vec2fix16_t;
 
-inline float vec2f_dot(vec2f a, vec2f b) {
+static inline float vec2f_dot(vec2f a, vec2f b) {
     return a.x * b.x + a.y * b.y;
 }
 
