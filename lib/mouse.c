@@ -30,3 +30,13 @@ void mouse_tick()
     MouseY = (1023-y)/4;
     MouseButtons = b;
 }
+
+void mouse_cursor(int on)
+{
+    asm volatile("mov r0, #106\n"
+                 "mov r1, %0\n"
+                 "swi "swiToConst(OS_Byte)
+                :                       // outputs
+                : "r"(on)         // inputs
+                : "r0", "r1", "cc");    // clobbers
+}

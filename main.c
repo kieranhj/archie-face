@@ -37,7 +37,7 @@ u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
 volatile int pending_bank = 0;          // updated during interrupt!
 volatile int displayed_bank;            // updated during interrupt!
-volatile int vsync_count = 0;           // updated during interrupt!
+volatile int g_vsync_count = 0;         // updated during interrupt!
 static int vsync_delta;
 static int last_vsync;
 
@@ -50,7 +50,7 @@ static u32 debug_step = 0;
 u32 debug_rasters = 1;
 
 // Main loop vars.
-static int frame_count = 0;
+int g_frame_count = 0;
 static int debug_frame_rate;
 static int vsyncs_since_last_count;
 
@@ -62,7 +62,7 @@ void eventv_handler(int event_no, int event_param1, int event_param2, int event_
     (void) event_param3;
     (void) event_param4;
     if (event_no == Event_VSync) {
-        vsync_count++;
+        g_vsync_count++;
 
         // Keep track of which screen bank we are displaying.
         if (pending_bank) {
@@ -84,6 +84,8 @@ void quit()
     v_releaseEventHandler(eventv_handler);
 
     v_waitForVSync();
+
+    mouse_cursor(0);
 }
 
 void init()
@@ -107,6 +109,9 @@ void init()
 
     // Debug.
     debug_init();
+
+    // Mouse.
+    mouse_cursor(1);
 
     // Register exit callback.
     atexit(quit);
@@ -169,12 +174,12 @@ int main(int argc, char* argv[])
     write_bank = 2;
     v_setDisplayBank(pending_bank);
 
-    last_vsync = vsync_count;
+    last_vsync = g_vsync_count;
 
     // ===============================
     // Main loop.
     // ===============================
-    while(/*vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE))
+    while(/*g_vsync_count==last_vsync &&*/ !k_checkKeypress(KEY_ESCAPE))
     {
         mouse_tick();
         debug_do_keypress_callbacks();
@@ -193,7 +198,7 @@ int main(int argc, char* argv[])
                 if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
 
                 // Update any emitter properties.
-                fix16_t a = FIX16_FRACTION(frame_count,2);  // Use frame count as brad.
+                fix16_t a = FIX16_FRACTION(g_frame_count,2);  // Use frame count as brad.
                 fix16_t r = INT_TO_FIX16(80);           // Radius
                 emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(a), r);
                 emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(a), r);
@@ -210,11 +215,11 @@ int main(int argc, char* argv[])
             }
 
             // Frame rate
-            frame_count++;
+            g_frame_count++;
 
-            if ((frame_count % 32) == 0) {
-                debug_frame_rate = 50 * 32 / (vsync_count - vsyncs_since_last_count);
-                vsyncs_since_last_count = vsync_count;
+            if ((g_frame_count % 32) == 0) {
+                debug_frame_rate = 50 * 32 / (g_vsync_count - vsyncs_since_last_count);
+                vsyncs_since_last_count = g_vsync_count;
             }
         }
 
@@ -227,8 +232,8 @@ int main(int argc, char* argv[])
         v_setWriteBank(write_bank);
         g_framebuffer = v_getScreenAddress();
 
-        vsync_delta = vsync_count - last_vsync;
-        last_vsync = vsync_count;
+        vsync_delta = g_vsync_count - last_vsync;
+        last_vsync = g_vsync_count;
 
         // ===============================
         // Draw
@@ -260,12 +265,10 @@ int main(int argc, char* argv[])
         if (debug_display)
         {
             char vsync_str[16];
-            //sprintf(vsync_str, "%d %d", vsync_delta, vsync_count);
+            //sprintf(vsync_str, "%d %d", vsync_delta, g_vsync_count);
             sprintf(vsync_str, "%d %x", debug_frame_rate, mb);
             debug_plot_string_mode13(vsync_str);
         }
-
-        plot_point(mouseX, mouseY, 255);
 
         SET_BORDER(0x0000);
 

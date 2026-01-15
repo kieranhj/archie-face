@@ -35,13 +35,13 @@ struct emitter_s
     particle_t      particles[0];
 };
 
-extern int vsync_count;
+extern int g_frame_count;
 
 static inline void emitter_particle_init(emitter_t *e, particle_t *p)
 {
     p->pos.x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
     p->pos.y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
-    p->birth = vsync_count;
+    p->birth = g_frame_count;
 }
 
 // TODO: Debug.
@@ -159,7 +159,7 @@ void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size)
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
-        int age = vsync_count - p->birth;
+        int age = g_frame_count - p->birth;
         if (age>=size) age=size-1;
         plot_point(FIX16_TO_INT(p->pos.x), FIX16_TO_INT(p->pos.y), ramp[age]);
     }
