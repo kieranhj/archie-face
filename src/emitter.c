@@ -17,8 +17,8 @@ typedef struct particle_s particle_t;
 
 struct particle_s
 {
-    fix16_t x;  // TODO: Use vec2fix16_t?
-    fix16_t y;
+    vec2fix16_t     pos;
+    int             birth;
 };
 
 struct emitter_s
@@ -35,10 +35,13 @@ struct emitter_s
     particle_t      particles[0];
 };
 
+extern int vsync_count;
+
 static inline void emitter_particle_init(emitter_t *e, particle_t *p)
 {
-    p->x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
-    p->y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->pos.x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->pos.y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->birth = vsync_count;
 }
 
 // TODO: Debug.
@@ -125,13 +128,13 @@ void emitter_tick(emitter_t *emitter)
         particle_t *p = &emitter->particles[i];
         fix16_t a;
         
-        if (flow_field_get_angle(f, p->x, p->y, &a))
+        if (flow_field_get_angle(f, p->pos.x, p->pos.y, &a))
         {
             fix16_t dx = cos_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]
 
-            p->x += FIX16_MUL(dx, speed) + offx;
-            p->y += FIX16_MUL(dy, speed) + offy;
+            p->pos.x += FIX16_MUL(dx, speed) + offx;
+            p->pos.y += FIX16_MUL(dy, speed) + offy;
         }
         else
         {
@@ -147,6 +150,17 @@ void emitter_draw(emitter_t *emitter)
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
-        plot_point(FIX16_TO_INT(p->x), FIX16_TO_INT(p->y), col);
+        plot_point(FIX16_TO_INT(p->pos.x), FIX16_TO_INT(p->pos.y), col);
+    }
+}
+
+void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size)
+{
+    for(int i = 0; i < emitter->max_particles; i++)
+    {
+        particle_t *p = &emitter->particles[i];
+        int age = vsync_count - p->birth;
+        if (age>=size) age=size-1;
+        plot_point(FIX16_TO_INT(p->pos.x), FIX16_TO_INT(p->pos.y), ramp[age]);
     }
 }

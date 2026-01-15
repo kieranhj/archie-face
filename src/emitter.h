@@ -22,5 +22,6 @@ void emitter_set_rotation(emitter_t *emitter, float rot);       // Or fix16 brad
 
 void emitter_tick(emitter_t *emitter);
 void emitter_draw(emitter_t *emitter);
+void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size);
 
 #endif // __EMITTER_H__

@@ -92,11 +92,13 @@ Prototypes to try
     - Different particle sources that have a colour each - how do they mix / interact?
     - Changing particle colour over time. => Need lifetime.
     - Colour by distance from attractors.
-    - Colour by speed.
+    - Colour by speed. => All move at constant speed.
     - Colour by flow direction? => Need sensible palette arrangment.
     - Dave asks if the particles can twinkle a bit (cf. Empires) - just use a colour ramp?
+        - Particle age => ramp is quite a lot of lookups...
 - Speed:
     - Different particles moving at different speeds - slow things down!
+    - Speed ~ age?
 - Movement:
     - Adding another preferred constant vector to the direction (per particle - or const per emitter if that's quicker in the loop). - DONE
 - Visualising the flow field.
@@ -111,6 +113,16 @@ Prototypes to try
     - Try scrolling the field (offset & wrap the table)
     - Adding fields together
     - Rotate the field (add a fixed offset to the table value in the loop)
+- COLOUR FIELD!
+    - Look up the colour based on (x,y) position of the particle
+    - Field can have a different resolution to the flow field
+    - Easy to scroll the colour field for effects
+    - Use a plasma type pattern - although this would suggest cycling the palette...
+    - Or animated in some way cf. liquid surface (one colour on left, one colour on right, middle is where they mix)
+- Pan over larger grid?
+    - Rather than have a screen sized grid - have a much larger grid and the screen is a viewport into this.
+    - Would have to be careful with the viewport camera path if particles are recycled as soon as they're off screen.
+
 
 TODO:
 - Add emitter objects that generate particles with specific properties - DONE
@@ -118,9 +130,16 @@ TODO:
     - Lifetime (or just tick time of creation to avoid having to update these)
     - Colour? - PER EMITTER
     - Speed? - PER EMITTER
-    - Offset vector. - PER EMITTER
+    - Delta vector. - PER EMITTER
 - Update emitter properties per tick w/ callback fn. - just update in tick.
 - Instance flow fields. - DONE
 - Allow them to be added together to affect the particles.
 - Or attach different emitters to different fields?
-- Rotate and offset fields.
+- Rotate and offset (scrolling) fields.
+- Load const tables rather than generate them at runtime in debug for iteration speed.
+
+BUG?
+- Particles never move left-to-right?!
+
+How to iterate on FX? Perhaps update Dave on the latest WIP to get some ideas?
+I like that brighter particles appear to be in front of dark particles -> make it look more 3D...

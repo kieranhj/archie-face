@@ -26,7 +26,7 @@
 // Gives 64 colours (R:2 G:2 B:2) with 4 'tints' (brightness / greys).
 // However the palette is arranged in a very unintuitive order.
 
-// NOTE: These values are 0x0RGB arrange, whilst VIDC palette registers are 0x0BGR!!
+// NOTE: These values are 0x0RGB arranged, whilst VIDC palette registers are 0x0BGR!!
 // TODO: Decide whether it would be better to keep these as VIDC1 registers to avoid confusion...
 //
 static u16 defaultPalette[16] = {0x0000, 0x0111, 0x0222, 0x0333, 0x0400, 0x0511, 0x0622, 0x0733, 0x0004, 0x0115, 0x0226, 0x0337, 0x0404, 0x0515, 0x0626, 0x0737};
@@ -97,8 +97,30 @@ static void MakeRgb4Palette(u8* rgb4palette)
 void colour_init_palette()
 {
     MakeArchie256Palette(defaultPalette, archie256);
-    MakeHsvPalette(HsvPalette);
+    //MakeHsvPalette(HsvPalette);
     MakeRgb4Palette(Rgb4Palette);
+}
+
+// RGB4 LERP in single MUL from: https://gist.github.com/mattiasgustavsson/c11e824e3d603d0c86e5e0dde4ecf839
+// color1 and color2 are R4G4B4 12bit RGB color values, alpha is 0-255
+static u16 blend_12bit( u16 color1, u16 color2, u8 alpha )
+{
+    u32 c1 = (u32) color1;
+    u32 c2 = (u32) color2;
+    u32 a =  (u32) (alpha >> 4);
+    // bit magic to alpha blend R G B with single mul
+    c1 = ( c1 | ( c1 << 12 ) ) & 0x0f0f0f;
+    c2 = ( c2 | ( c2 << 12 ) ) & 0x0f0f0f;
+    uint32_t o = ( ( ( ( c2 - c1 ) * a ) >> 4 ) + c1 ) & 0x0f0f0f;
+    return (u16) ( o | ( o >> 12 ) );
+}
+
+void colour_make_ramp(u8 *ramp, int size, u16 from, u16 to)
+{
+    for(int i=0; i < size; i++)
+    {
+        ramp[i] = colour_rgb4_to_index(blend_12bit(from, to, 256 * i / size));
+    }
 }
 
 void colour_draw_palette()

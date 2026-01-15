@@ -114,6 +114,8 @@ void init()
 
 // ============================================================================
 
+static u8 colour_ramp[256];
+
 int main(int argc, char* argv[])
 {
     // Unused params.
@@ -126,7 +128,7 @@ int main(int argc, char* argv[])
 
     // Lookup tables.
     printf("Init...   ");
-    //colour_init_palette();
+    colour_init_palette();
     trig_init();
 
     // Debug init.
@@ -139,19 +141,27 @@ int main(int argc, char* argv[])
 
         // Flow field init.
         flow_field_t *field1 = flow_field_make(20, 16);
+        flow_field_init_with_noise(field1, 0.1f);
         flow_field_init(field1);  // inits debug.
 
         // Setup Particle emitters.
-        emitter_t *emitter1 = emitter_make(250, 1.0f, 64, 160, 128, 50);
+        emitter_t *emitter1 = emitter_make(300, 1.0f, 64, 160, 128, 50);
         vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(160), .y=INT_TO_FIX16(128)};
         emitter_set_delta(emitter1, (vec2fix16_t){.x=FLOAT_TO_FIX16(-0.5f), .y=FLOAT_TO_FIX16(0.0f)});
         emitter_set_field(emitter1, field1);
 
-        emitter_t *emitter2 = emitter_make(250, 1.5f, 255, 256, 256, 30);
+        emitter_t *emitter2 = emitter_make(300, 1.0f, 255, 256, 256, 30);
         float emitter2_rot = 0.0f;
-        emitter_set_mouse(emitter2, 1);
+        //emitter_set_mouse(emitter2, 1);
         emitter_set_rotation(emitter2, emitter2_rot);
         emitter_set_field(emitter2, field1);
+
+        colour_make_ramp(colour_ramp, 32, COLOUR_MAKE_RGB4(0,0,0), COLOUR_MAKE_RGB4(0,15,0));
+        colour_make_ramp(colour_ramp+32, 32, COLOUR_MAKE_RGB4(0,15,0), COLOUR_MAKE_RGB4(15,15,0));
+        colour_make_ramp(colour_ramp+64, 32, COLOUR_MAKE_RGB4(15,15,0), COLOUR_MAKE_RGB4(15,0,15));
+        colour_make_ramp(colour_ramp+96, 32, COLOUR_MAKE_RGB4(15,0,15), COLOUR_MAKE_RGB4(0,0,15));
+        colour_make_ramp(colour_ramp+128, 32, COLOUR_MAKE_RGB4(0,0,15), COLOUR_MAKE_RGB4(15,0,0));
+        colour_make_ramp(colour_ramp+160, 32, COLOUR_MAKE_RGB4(15,0,0), COLOUR_MAKE_RGB4(15,15,15));
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -183,12 +193,17 @@ int main(int argc, char* argv[])
                 if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
 
                 // Update any emitter properties.
-                fix16_t a = INT_TO_FIX16(frame_count);  // Use frame count as brad.
+                fix16_t a = FIX16_FRACTION(frame_count,2);  // Use frame count as brad.
                 fix16_t r = INT_TO_FIX16(80);           // Radius
                 emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(a), r);
                 emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(a), r);
                 emitter_set_origin(emitter1, emitter1_pos);
 
+                r = INT_TO_FIX16(40);           // Radius
+                emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(-a), r);
+                emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(-a), r);
+                emitter_set_origin(emitter2, emitter1_pos);
+                
                 // Tick the emitters to move the particles.
                 emitter_tick(emitter1);
                 emitter_tick(emitter2);
@@ -231,8 +246,8 @@ int main(int argc, char* argv[])
             if (flow_field_show_grid) flow_field_draw(field1);
 
             //colour_draw_palette();
-            emitter_draw(emitter1);
-            emitter_draw(emitter2);
+            emitter_draw_with_ramp(emitter2, colour_ramp, 192);
+            emitter_draw_with_ramp(emitter1, colour_ramp, 192);
         }
 
         // Print some debug info.
