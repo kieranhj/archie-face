@@ -11,7 +11,7 @@ ARCHIEOBJDUMP=$(ARCHIESDK)/tools/bin/arm-archie-objdump
 # Your program's name
 APPNAME = grid
 
-LIBFILES = lib/debug.c lib/mem.c lib/mouse.c lib/plot.c lib/trig.c lib/video.c
+LIBFILES = lib/debug.c lib/mem.c lib/mouse.c lib/plot.c lib/trig.c lib/video.c lib/file.c
 
 # Your source files (.c or .s)
 SRCFILES = main.c src/flow-field.c src/colour.c src/noise.c src/emitter.c
@@ -22,7 +22,7 @@ LIBS = -lm
 # Make sure to always append to CFLAGS with += instead of overwriting them
 # Add -g to interleave source with asm in compile.txt
 # -fno-zero-initialized-in-bss was a workaround for BSS not being initialise to zero.
-CFLAGS += -O3 -g -Winline -flto
+CFLAGS += -O3 -g -Winline -D_DEBUG -flto 
 
 all: build
 # Build program

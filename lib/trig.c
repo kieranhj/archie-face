@@ -4,14 +4,24 @@
 
 #include "trig.h"
 #include "vector.h"
+#include "file.h"
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 
 static fix16_t sinusTable[SINUS_TABLE_ENTRIES];
 
+#ifdef _DEBUG
+const char sinus_filename[16]="sinus\0";
+#endif
+
 void trig_init()
 {
+    #ifdef _DEBUG
+    if (file_load_at_address(sinus_filename, sinusTable) == 1)
+        return;
+    #endif
+
     // Generate sine table.
     assert(SINUS_TABLE_ENTRIES == 8192);
     for(int i=0; i < SINUS_TABLE_ENTRIES; i++)
@@ -22,6 +32,10 @@ void trig_init()
 
         // if ((i&255)==0) printf("[%d] r=%f rad=%f s=%f tab=%08lx\n\r",i,r,rad,sinf(rad),sinusTable[i]);
     }
+
+    #ifdef _DEBUG
+    file_save(sinus_filename, sinusTable, sizeof(sinusTable));
+    #endif
 }
 
 // brad = [0.0, 256.0) in fixed point s8.16

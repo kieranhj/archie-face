@@ -150,12 +150,12 @@ int main(int argc, char* argv[])
         flow_field_init(field1);  // inits debug.
 
         // Setup Particle emitters.
-        emitter_t *emitter1 = emitter_make(300, 1.0f, 64, 160, 128, 50);
+        emitter_t *emitter1 = emitter_make(300, 1.0f, 64, 160, 128, 50, 500);
         vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(160), .y=INT_TO_FIX16(128)};
         emitter_set_delta(emitter1, (vec2fix16_t){.x=FLOAT_TO_FIX16(-0.5f), .y=FLOAT_TO_FIX16(0.0f)});
         emitter_set_field(emitter1, field1);
 
-        emitter_t *emitter2 = emitter_make(300, 1.0f, 255, 256, 256, 30);
+        emitter_t *emitter2 = emitter_make(300, 1.5f, 255, 256, 256, 30, 200);
         float emitter2_rot = 0.0f;
         //emitter_set_mouse(emitter2, 1);
         emitter_set_rotation(emitter2, emitter2_rot);

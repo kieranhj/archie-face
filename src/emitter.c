@@ -26,7 +26,7 @@ struct emitter_s
     int             max_particles;
     u8              colour;
     u8              mouse;      // Use mouse pos.
-    fix16_t         speed;
+    fix16_t         speed;      // NB. negative speed works!
     vec2fix16_t     origin;
     vec2fix16_t     delta;
     fix16_t         rotation;
@@ -49,7 +49,7 @@ static inline void emitter_particle_init(emitter_t *e, particle_t *p)
 //    debug_register_key(RMKey_ArrowUp, debug_word_add, (u32)&flow_field_num_particles, 10);
 //    debug_register_key(RMKey_ArrowDown, debug_word_add, (u32)&flow_field_num_particles, -10);
 
-emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int oy, int radius)
+emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int oy, int radius, int max_age)
 {
     emitter_t *emitter = malloc(sizeof(struct emitter_s) + max_particles * sizeof(struct particle_s));
 
@@ -63,7 +63,7 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->delta.y = 0;
     emitter->rotation = 0;
     emitter->radius = radius;
-    emitter->max_age = 500;
+    emitter->max_age = max_age;
     emitter->field = NULL;
 
     for(int i = 0; i < max_particles; i++)

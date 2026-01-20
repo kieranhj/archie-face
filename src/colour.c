@@ -15,6 +15,7 @@
 
 #include "colour.h"
 #include "../lib/plot.h"
+#include "../lib/file.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -37,6 +38,12 @@ static u8 usedCount[256];       // for debugging.
 
 static u8 HsvPalette[4096];     // 0x0VsH (V:4 S:2 H:6) value -> colour index [0, 255]
 static u8 Rgb4Palette[4096];    // 0x0RGB (R:4 G:4 B:4) value -> colour index [0, 255]
+
+#ifdef _DEBUG
+const char archie256_filename[16] = "archie256\0";
+const char rgb4pal_filename[16] = "rgb4pal\0";
+const char hsvpal_filename[16] = "hsvpal\0";
+#endif
 
 // ============================================================================
 
@@ -96,9 +103,23 @@ static void MakeRgb4Palette(u8* rgb4palette)
 
 void colour_init_palette()
 {
+    #ifdef _DEBUG
+    if (file_load_at_address(archie256_filename, archie256) != 1)
+    {
+        MakeArchie256Palette(defaultPalette, archie256);
+        file_save(archie256_filename, archie256, sizeof(archie256));
+    }
+
+    if (file_load_at_address(rgb4pal_filename, Rgb4Palette) != 1)
+    {
+        MakeRgb4Palette(Rgb4Palette);
+        file_save(rgb4pal_filename, Rgb4Palette, sizeof(Rgb4Palette));
+    }
+    #else
     MakeArchie256Palette(defaultPalette, archie256);
     //MakeHsvPalette(HsvPalette);
     MakeRgb4Palette(Rgb4Palette);
+    #endif
 }
 
 // RGB4 LERP in single MUL from: https://gist.github.com/mattiasgustavsson/c11e824e3d603d0c86e5e0dde4ecf839
