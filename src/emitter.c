@@ -31,6 +31,7 @@ struct emitter_s
     vec2fix16_t     delta;
     fix16_t         rotation;
     int             radius;
+    int             max_age;
     flow_field_t *  field;
     particle_t      particles[0];
 };
@@ -62,6 +63,7 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->delta.y = 0;
     emitter->rotation = 0;
     emitter->radius = radius;
+    emitter->max_age = 500;
     emitter->field = NULL;
 
     for(int i = 0; i < max_particles; i++)
@@ -122,13 +124,16 @@ void emitter_tick(emitter_t *emitter)
     fix16_t speed = emitter->speed;
     flow_field_t *f = emitter->field;
     fix16_t rotation = emitter->rotation;
+    int max_age = emitter->max_age;
 
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
         fix16_t a;
-        
-        if (flow_field_get_angle(f, p->pos.x, p->pos.y, &a))
+
+        int age = g_frame_count - p->birth;
+
+        if (age < max_age && flow_field_get_angle(f, p->pos.x, p->pos.y, &a))
         {
             fix16_t dx = cos_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]
