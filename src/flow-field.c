@@ -12,11 +12,13 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 
 #define FF_ANGLE_FIX16(f,i,j)       ((f)->angle[(j)*(f)->cols+(i)])
 #define ONE_OVER_TWO_TIMES_PI       (1.0f/(2.0f*M_PI_F))
 
+#define FF_DEFAULT_NOISE_SMOOTHING  0.05f
 
 static u32 vortex_radius = 50;      // debug.
 u32 flow_field_show_grid;
@@ -181,15 +183,26 @@ void flow_field_init_with_angle(flow_field_t *grid, fix16_t angle)
 
 void flow_field_init_with_noise(flow_field_t *grid, float smoothing)    // 0.1f
 {
+    float init_x = 64.0f;        // Can sample from within the larger noise field.
+    float init_y = 64.0f;
+
+    //init_x = rand_between(0, 255);
+    //init_y = rand_between(0, 255);
+
     // Init.
     noise_init();
+
     for(int i = 0; i < grid->cols; i++)
     {
         for(int j = 0; j < grid->rows; j++)
         {
-            float n = noise_sample_2d(i * smoothing, j * smoothing);  // NOISE SMOOTHING FACTOR
-            n = (n + 1.0f) * 0.5f;
-            FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(256*n); // TODO: Optimise.
+            #define NOISE_TO_BRAD 181.02f   // 128.0f
+            // Returns [-1.0f, 1.0f] or +/-sqrt(N/4) so for 2D => (-0.707, 0.707) ?
+            // So to expand to [-128.0f, 128.0f] multiply by 128/sqrt(0.5) ~= 181.02f
+
+            float n = NOISE_TO_BRAD * noise_sample_2d(init_x + i * smoothing, init_y + j * smoothing);
+            if (n<0.0f) n=256.0f+n;
+            FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(n);
         }
     }
 }
@@ -309,7 +322,7 @@ static void flow_field_debug_init_with_noise(u32 param1, u32 param2)
 {
     (void)param1;
     (void)param2;
-    flow_field_init_with_noise(flow_field_debug_grid, 0.1f);
+    flow_field_init_with_noise(flow_field_debug_grid, FF_DEFAULT_NOISE_SMOOTHING);
 }
 
 // ============================================================================

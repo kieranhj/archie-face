@@ -136,10 +136,14 @@ TODO:
 - Allow them to be added together to affect the particles.
 - Or attach different emitters to different fields?
 - Rotate and offset (scrolling) fields.
-- Load const tables rather than generate them at runtime in debug for iteration speed.
+- Load const tables rather than generate them at runtime in debug for iteration speed. - DONE
 
 BUG?
-- Particles never move left-to-right?!
+- Particles never move left-to-right?! - FIXED!
 
 How to iterate on FX? Perhaps update Dave on the latest WIP to get some ideas?
-I like that brighter particles appear to be in front of dark particles -> make it look more 3D...
+
+NOTES:
+- I like that brighter particles appear to be in front of dark particles -> makes it look more 3D...
+- Lower smoothing values for noise makes for gentler curves in the field -> looks nicer
+- 

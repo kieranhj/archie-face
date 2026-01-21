@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 
         // Flow field init.
         flow_field_t *field1 = flow_field_make(20, 16);
-        flow_field_init_with_noise(field1, 0.1f);
+        flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.
         flow_field_init(field1);  // inits debug.
 
         // Setup Particle emitters.

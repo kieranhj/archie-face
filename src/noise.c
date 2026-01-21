@@ -1,6 +1,6 @@
 // ============================================================================
 // Perlin Noise fns.
-// Copied from: <insert URL here when I remember!>
+// Copied from: https://rtouti.github.io/graphics/perlin-noise-algorithm
 // ============================================================================
 
 #include "noise.h"
@@ -11,8 +11,10 @@
 
 static int Permutation[512];
 
-static void shuffle(int *arrayToShuffle) {
-	for(int e = 255; e > 0; e--) {
+static void shuffle(int *arrayToShuffle)
+{
+	for(int e = 255; e > 0; e--)
+	{
 		u8 index = rand_between(0,e-1);
 		int temp = arrayToShuffle[e];
 		
@@ -21,19 +23,23 @@ static void shuffle(int *arrayToShuffle) {
 	}
 }
 
-void noise_init() {
-	for(int i = 0; i < 256; i++) {
+void noise_init()
+{
+	for(int i = 0; i < 256; i++)
+	{
 		Permutation[i]=i;
 	}
 
 	shuffle(Permutation);
 
-    for(int i = 0; i < 256; i++) {
+    for(int i = 0; i < 256; i++) 
+	{
         Permutation[256+i] = Permutation[i];
     }
 }
 
-static vec2f GetConstantVector(int v) {
+static vec2f GetConstantVector(int v)
+{
     vec2f vec0 = {1.0f, 1.0f};
     vec2f vec1 = {-1.0f, 1.0f};
     vec2f vec2 = {-1.0f, -1.0f};
@@ -51,15 +57,18 @@ static vec2f GetConstantVector(int v) {
 		return vec3;
 }
 
-static float Fade(float t) {
-	return ((6*t - 15)*t + 10)*t*t*t;
+static float Fade(float t)
+{
+	return ((6.0f*t - 15.0f)*t + 10.0f)*t*t*t;
 }
 
-static float Lerp(float t, float a1, float a2) {
+static float Lerp(float t, float a1, float a2)
+{
 	return a1 + t*(a2-a1);
 }
 
-float noise_sample_2d(float x, float y) {
+float noise_sample_2d(float x, float y)
+{
 	int X = (int)floorf(x) & 255;
 	int Y = (int)floorf(y) & 255;
 
