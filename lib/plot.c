@@ -12,7 +12,7 @@
 
 void plot_point(register int x, register int y, register u8 c)
 {
-    if (x>=0 && x<320 && y>=0 && y<256) *(g_framebuffer + x + y*320) = c;
+    if (x>=0 && x<Screen_Width && y>=0 && y<Screen_Height) *(g_framebuffer + x + y*Screen_Stride) = c;
 }
 
 void plot_block(register int x, register int y, register u8 c)
@@ -20,7 +20,7 @@ void plot_block(register int x, register int y, register u8 c)
     int x0=x&~0x3, y0=y&~0x3;
     u32 cw=c|(c<<8);cw=cw|(cw<<16);
 
-    u32* fp=(u32 *)(g_framebuffer + x0 + y0*320);
+    u32* fp=(u32 *)(g_framebuffer + x0 + y0*Screen_Stride);
 
     *fp = cw; fp+=80;
     *fp = cw; fp+=80;
@@ -39,7 +39,7 @@ void plot_line(int x0, int y0, int x1, int y1, u8 col)
     while(1)
     {
         if (x0==x1 && y0==y1) break;
-        if (x0>=0 && x0<320 && y0>=0 && y0<256) *(g_framebuffer + x0 + y0*320) = col;
+        if (x0>=0 && x0<Screen_Width && y0>=0 && y0<Screen_Height) *(g_framebuffer + x0 + y0*Screen_Stride) = col;
 
         int e2 = 2 * error;
         if (e2 >= dy)

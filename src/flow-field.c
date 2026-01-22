@@ -3,6 +3,7 @@
 // ============================================================================
 
 #include "flow-field.h"
+#include "globals.h"
 #include "noise.h"
 #include "../lib/debug.h"
 #include "../lib/mouse.h"
@@ -88,8 +89,8 @@ flow_field_t *flow_field_make(int cols, int rows)
 
     grid->cols = cols;
     grid->rows = rows;
-    grid->step_x = 320 / cols;
-    grid->step_y = 256 / rows;
+    grid->step_x = Screen_Width / cols;
+    grid->step_y = Screen_Height / rows;
     grid->cols_per_pixel = FIX16_FRACTION(cols, 320);
     grid->rows_per_pixel = FIX16_FRACTION(rows, 256);
     
@@ -108,13 +109,15 @@ void *flow_field_kill(flow_field_t *grid)
 
 void flow_field_draw_grid(flow_field_t *grid)
 {
+    int sx = grid->step_x;
+    int sy = grid->step_y;
     for(int i = 0; i < grid->cols; i++)
     {
         for(int j = 0; j < grid->rows; j++)
         {
             int a = FIX16_TO_INT(FF_ANGLE_FIX16(grid,i,j));
-            int x = GRID_OFFX + i*grid->step_x;
-            int y = GRID_OFFY + j*grid->step_y;
+            int x = (sx/2) + i*sx;
+            int y = (sy/2) + j*sy;
 
             plot_point(x, y, a);
         }
@@ -123,13 +126,15 @@ void flow_field_draw_grid(flow_field_t *grid)
 
 void flow_field_draw(flow_field_t *grid)
 {
+    int sx = grid->step_x;
+    int sy = grid->step_y;
     for(int i = 0; i < grid->cols; i++)
     {
         for(int j = 0; j < grid->rows; j++)
         {
             fix16_t a = FF_ANGLE_FIX16(grid,i,j);
-            int x0 = GRID_OFFX + i*grid->step_x;
-            int y0 = GRID_OFFY + j*grid->step_y;
+            int x0 = (sx/2) + i*sx;
+            int y0 = (sy/2) + j*sy;
             int dx = cos_fix16(a) >> 14;
             int dy = sin_fix16(a) >> 14;
             plot_line(x0, y0, x0 + dx, y0 + dy, 255);

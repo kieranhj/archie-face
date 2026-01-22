@@ -89,7 +89,7 @@ PUSH 2 / Flow Fields
 
 Prototypes to try
 - Colours:
-    - Different particle sources that have a colour each - how do they mix / interact?
+    - Different particle sources that have a colour each - how do they mix / interact? - RAMPS
     - Changing particle colour over time. => Need lifetime.
     - Colour by distance from attractors.
     - Colour by speed. => All move at constant speed.
@@ -97,8 +97,8 @@ Prototypes to try
     - Dave asks if the particles can twinkle a bit (cf. Empires) - just use a colour ramp?
         - Particle age => ramp is quite a lot of lookups...
 - Speed:
-    - Different particles moving at different speeds - slow things down!
-    - Speed ~ age?
+    - Different particles moving at different speeds - slow things down! - DONE
+    - Speed ~ age? - NOT PER PARTICLE
 - Movement:
     - Adding another preferred constant vector to the direction (per particle - or const per emitter if that's quicker in the loop). - DONE
 - Visualising the flow field.
@@ -108,11 +108,11 @@ Prototypes to try
 - Updating the flow field:
     - Add collision object (cf.Push) that displaces the flow field locally.
         => Dave tried this on his prototype and thought it detracted from the flow field (too similar to Push)
-        => Dave likes the vortex whirls.
-    - Looks quite nice when the noise grid is updated (although it takes a coupe of seconds)
+        => Dave likes the vortex whirls. - LOOK GOOD WHEN LARGE
+    - Looks quite nice when the noise grid is updated (although it takes a coupe of seconds) - PREBAKE THESE
     - Try scrolling the field (offset & wrap the table)
-    - Adding fields together
-    - Rotate the field (add a fixed offset to the table value in the loop)
+    - Adding fields together - VORTEX FIELD MOVING THROUGH THE NOISE FIELD?
+    - Rotate the field (add a fixed offset to the table value in the loop) - DONE IN EMITTE
 - COLOUR FIELD!
     - Look up the colour based on (x,y) position of the particle
     - Field can have a different resolution to the flow field
@@ -122,6 +122,8 @@ Prototypes to try
 - Pan over larger grid?
     - Rather than have a screen sized grid - have a much larger grid and the screen is a viewport into this.
     - Would have to be careful with the viewport camera path if particles are recycled as soon as they're off screen.
+- Field density
+    - Coarser fields with lower smoothing values vs. denser fields with higher smoothing values?
 
 
 TODO:
@@ -138,12 +140,13 @@ TODO:
 - Rotate and offset (scrolling) fields.
 - Load const tables rather than generate them at runtime in debug for iteration speed. - DONE
 
+
 BUG?
 - Particles never move left-to-right?! - FIXED!
 
 How to iterate on FX? Perhaps update Dave on the latest WIP to get some ideas?
+How to save interesting configurations?
 
 NOTES:
 - I like that brighter particles appear to be in front of dark particles -> makes it look more 3D...
 - Lower smoothing values for noise makes for gentler curves in the field -> looks nicer
-- 

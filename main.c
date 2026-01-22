@@ -7,9 +7,8 @@
 #include "src/globals.h"
 
 // App modules.
-#include "src/flow-field.h"
 #include "src/colour.h"
-#include "src/emitter.h"
+#include "src/seq.h"
 
 // My libraries. :)
 #include "lib/debug.h"
@@ -33,11 +32,12 @@
 
 // ============================================================================
 
+// System vars.
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
-volatile int pending_bank = 0;          // updated during interrupt!
+volatile int pending_bank;              // updated during interrupt!
 volatile int displayed_bank;            // updated during interrupt!
-volatile int g_vsync_count = 0;         // updated during interrupt!
+volatile int g_vsync_count;             // updated during interrupt!
 static int vsync_delta;
 static int last_vsync;
 
@@ -46,11 +46,11 @@ static int last_vsync;
 // TODO: Put these somewhere? (Or in a debug struct for context passing?)
 static u32 debug_display = 1;
 static u32 debug_do_tick = 1;
-static u32 debug_step = 0;
-u32 debug_rasters = 1;
+static u32 debug_step;
+u32 g_debug_rasters = 1;
 
 // Main loop vars.
-int g_frame_count = 0;
+int g_frame_count;
 static int debug_frame_rate;
 static int vsyncs_since_last_count;
 
@@ -119,8 +119,6 @@ void init()
 
 // ============================================================================
 
-static u8 colour_ramp[256];
-
 int main(int argc, char* argv[])
 {
     // Unused params.
@@ -138,35 +136,12 @@ int main(int argc, char* argv[])
 
     // Debug init.
     debug_register_key(RMKey_D, debug_toggle_word, (u32)&debug_display, 0);
-    debug_register_key(RMKey_R, debug_toggle_word, (u32)&debug_rasters, 0);
+    debug_register_key(RMKey_R, debug_toggle_word, (u32)&g_debug_rasters, 0);
     debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
 
     // FX init.
-
-        // Flow field init.
-        flow_field_t *field1 = flow_field_make(20, 16);
-        flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.
-        flow_field_init(field1);  // inits debug.
-
-        // Setup Particle emitters.
-        emitter_t *emitter1 = emitter_make(300, 1.0f, 64, 160, 128, 50, 500);
-        vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(160), .y=INT_TO_FIX16(128)};
-        emitter_set_delta(emitter1, (vec2fix16_t){.x=FLOAT_TO_FIX16(-0.5f), .y=FLOAT_TO_FIX16(0.0f)});
-        emitter_set_field(emitter1, field1);
-
-        emitter_t *emitter2 = emitter_make(300, 1.5f, 255, 256, 256, 30, 200);
-        float emitter2_rot = 0.0f;
-        //emitter_set_mouse(emitter2, 1);
-        emitter_set_rotation(emitter2, emitter2_rot);
-        emitter_set_field(emitter2, field1);
-
-        colour_make_ramp(colour_ramp, 32, COLOUR_MAKE_RGB4(0,0,0), COLOUR_MAKE_RGB4(0,15,0));
-        colour_make_ramp(colour_ramp+32, 32, COLOUR_MAKE_RGB4(0,15,0), COLOUR_MAKE_RGB4(15,15,0));
-        colour_make_ramp(colour_ramp+64, 32, COLOUR_MAKE_RGB4(15,15,0), COLOUR_MAKE_RGB4(15,0,15));
-        colour_make_ramp(colour_ramp+96, 32, COLOUR_MAKE_RGB4(15,0,15), COLOUR_MAKE_RGB4(0,0,15));
-        colour_make_ramp(colour_ramp+128, 32, COLOUR_MAKE_RGB4(0,0,15), COLOUR_MAKE_RGB4(15,0,0));
-        colour_make_ramp(colour_ramp+160, 32, COLOUR_MAKE_RGB4(15,0,0), COLOUR_MAKE_RGB4(15,15,15));
+    sequence_init();
 
     // Triple screen buffering.
     displayed_bank = 0;
@@ -194,25 +169,7 @@ int main(int argc, char* argv[])
             debug_step = 0;
 
             // FX tick.
-            {
-                if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
-
-                // Update any emitter properties.
-                fix16_t a = FIX16_FRACTION(g_frame_count,2);  // Use frame count as brad.
-                fix16_t r = INT_TO_FIX16(80);           // Radius
-                emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(a), r);
-                emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(a), r);
-                emitter_set_origin(emitter1, emitter1_pos);
-
-                r = INT_TO_FIX16(40);           // Radius
-                emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(-a), r);
-                emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(-a), r);
-                emitter_set_origin(emitter2, emitter1_pos);
-                
-                // Tick the emitters to move the particles.
-                emitter_tick(emitter1);
-                emitter_tick(emitter2);
-            }
+            sequence_tick();
 
             // Frame rate
             g_frame_count++;
@@ -247,13 +204,7 @@ int main(int argc, char* argv[])
         SET_BORDER(0x00f0);
 
         // FX draw.
-        {
-            if (flow_field_show_grid) flow_field_draw(field1);
-
-            //colour_draw_palette();
-            emitter_draw_with_ramp(emitter2, colour_ramp, 192);
-            emitter_draw_with_ramp(emitter1, colour_ramp, 192);
-        }
+        sequence_draw();
 
         // Print some debug info.
         SET_BORDER(0x0fff);
@@ -278,9 +229,8 @@ int main(int argc, char* argv[])
         v_setDisplayBank(write_bank);   // screen won't be displayed until vsync.
     }
 
-    emitter1 = emitter_kill(emitter1);
-    emitter2 = emitter_kill(emitter2);
-    field1 = flow_field_kill(field1);
+    // FX Kill.
+    sequence_kill();
 
 	return 0;
 }

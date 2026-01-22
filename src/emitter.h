@@ -19,6 +19,7 @@ void emitter_set_mouse(emitter_t *emitter, int attach);
 void emitter_set_origin(emitter_t *emitter, vec2fix16_t origin);
 void emitter_set_delta(emitter_t *emitter, vec2fix16_t delta);
 void emitter_set_rotation(emitter_t *emitter, float rot);       // Or fix16 brad?
+void emitter_set_radius(emitter_t *emitter, int radius_x, int radius_y);
 
 void emitter_tick(emitter_t *emitter);
 void emitter_draw(emitter_t *emitter);

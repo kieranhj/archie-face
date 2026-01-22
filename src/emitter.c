@@ -4,6 +4,7 @@
 // ============================================================================
 
 #include "emitter.h"
+#include "globals.h"
 #include "flow-field.h"
 #include "../lib/maths.h"
 #include "../lib/trig.h"
@@ -30,7 +31,8 @@ struct emitter_s
     vec2fix16_t     origin;
     vec2fix16_t     delta;
     fix16_t         rotation;
-    int             radius;
+    int             radius_x;
+    int             radius_y;
     int             max_age;
     flow_field_t *  field;
     particle_t      particles[0];
@@ -40,8 +42,8 @@ extern int g_frame_count;
 
 static inline void emitter_particle_init(emitter_t *e, particle_t *p)
 {
-    p->pos.x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
-    p->pos.y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius) - e->radius);
+    p->pos.x = e->origin.x + INT_TO_FIX16(rand_between(0, 2*e->radius_x) - e->radius_x);
+    p->pos.y = e->origin.y + INT_TO_FIX16(rand_between(0, 2*e->radius_y) - e->radius_y);
     p->birth = g_frame_count;
 }
 
@@ -62,7 +64,8 @@ emitter_t *emitter_make(int max_particles, float speed, u8 colour, int ox, int o
     emitter->delta.x = 0;
     emitter->delta.y = 0;
     emitter->rotation = 0;
-    emitter->radius = radius;
+    emitter->radius_x = radius;
+    emitter->radius_y = radius;
     emitter->max_age = max_age;
     emitter->field = NULL;
 
@@ -106,6 +109,12 @@ void emitter_set_rotation(emitter_t *emitter, float rot)
 void emitter_set_field(emitter_t *emitter, flow_field_t *field)
 {
     emitter->field = field;
+}
+
+void emitter_set_radius(emitter_t *emitter, int radius_x, int radius_y)
+{
+    emitter->radius_x = radius_x;
+    emitter->radius_y = radius_y;
 }
 
 void emitter_tick(emitter_t *emitter)
@@ -164,8 +173,14 @@ void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size)
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
+        #if 0
         int age = g_frame_count - p->birth;
         if (age>=size) age=size-1;
         plot_point(FIX16_TO_INT(p->pos.x), FIX16_TO_INT(p->pos.y), ramp[age]);
+        #else
+        int px = FIX16_TO_INT(p->pos.x);
+        int x = px / 2;//size * px / Screen_Width;
+        plot_point(px, FIX16_TO_INT(p->pos.y), ramp[x]);
+        #endif
     }
 }

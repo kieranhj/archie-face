@@ -19,6 +19,9 @@
 #define Screen_Banks        3
 #define Screen_SizeTotal    (Screen_SizeBytes * Screen_Banks)
 
-extern u8* g_framebuffer;
+extern u8* g_framebuffer;           // Pointer to current framebuffer for drawing.
+extern int g_frame_count;           // Number of frames displayed.
+extern volatile int g_vsync_count;  // Number of vsyncs since launch.
+extern u32 g_debug_rasters;         // Debug raster timing enabled.
 
 #endif // __GLOBALS_H__

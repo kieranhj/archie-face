@@ -10,7 +10,7 @@
 
 typedef void (*key_callback)(u32 key_param1, u32 key_param2);
 
-#define SET_BORDER(bgr) if(debug_rasters) debug_write_vidc(VIDC_Border | (bgr))
+#define SET_BORDER(bgr) if(g_debug_rasters) debug_write_vidc(VIDC_Border | (bgr))
 
 void debug_init();
 void debug_plot_string_mode13(const char *string);

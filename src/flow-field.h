@@ -8,13 +8,6 @@
 #include "archie/SDKTypes.h"
 #include "../lib/maths.h"
 
-#define GRID_ROWS       16
-#define GRID_COLS       20
-#define GRID_STEPX      (320/GRID_COLS)
-#define GRID_STEPY      (256/GRID_ROWS)
-#define GRID_OFFX       (GRID_STEPX/2)
-#define GRID_OFFY       (GRID_STEPY/2)
-
 typedef struct flow_field_s flow_field_t;
 
 extern u32 flow_field_show_grid;
