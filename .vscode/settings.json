@@ -8,5 +8,18 @@
         "corecrt_math_defines.h": "c",
         "cvector": "c",
         "globals.h": "c"
+    },
+	"terminal.integrated.profiles.windows": {
+        "MSYS2": {
+        "path": "C:\\msys64\\usr\\bin\\bash.exe",
+        "args": [
+            "--login",
+            "-i"
+        ],
+        "env": {
+            "MSYSTEM": "UCRT64",
+            "CHERE_INVOKING": "1"
+        }
+        }
     }
 }

@@ -26,6 +26,11 @@ void flow_field_draw_curve(flow_field_t *grid, int x0, int y0, int num_steps, in
 void flow_field_insert_attractor(flow_field_t *grid, int x, int y, int radius);
 void flow_field_insert_vortex(flow_field_t *grid, int x, int y, int fx, int fy, int radius);
 
-int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a);
+int flow_field_get_nearest_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a);
+void flow_field_set_angle(flow_field_t *grid, int i, int j, fix16_t a);
+fix16_t flow_field_get_angle(flow_field_t *grid, int i, int j);
+
+int flow_field_get_rows(flow_field_t *grid);
+int flow_field_get_cols(flow_field_t *grid);
 
 #endif // __FLOW_FIELD_H__

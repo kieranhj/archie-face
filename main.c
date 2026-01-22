@@ -129,6 +129,8 @@ void init()
 // Main.
 // ============================================================================
 
+static void debug_reboot(u32 param1, u32 param2);
+
 int main(int argc, char* argv[])
 {
     // Unused params.
@@ -149,6 +151,7 @@ int main(int argc, char* argv[])
     debug_register_key(RMKey_R, debug_toggle_word, (u32)&g_debug_rasters, 0);
     debug_register_key(RMKey_S, debug_set_word, (u32)&debug_step, 1);
     debug_register_key(RMKey_Space, debug_toggle_word, (u32)&debug_do_tick, 0);
+    debug_register_key(RMKey_A, debug_reboot, 0, 0);
 
     // FX init.
     sequence_init();
@@ -244,6 +247,18 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+static void debug_reboot(u32 param1, u32 param2)
+{
+    (void)param1;
+    (void)param2;
+    static char reboot_cli[16]="grid\0";
+    asm volatile("mov r0, %0\n"
+                 "swi " swiToConst(0x05)        // OS_CLI
+                :            // outputs
+                : "r"(reboot_cli)  // inputs 
+                : "r0", "cc"); // clobbers
+}    
 
 // ============================================================================
 // Static data.

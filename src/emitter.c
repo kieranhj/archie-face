@@ -142,7 +142,7 @@ void emitter_tick(emitter_t *emitter)
 
         int age = g_frame_count - p->birth;
 
-        if (age < max_age && flow_field_get_angle(f, p->pos.x, p->pos.y, &a))
+        if (age < max_age && flow_field_get_nearest_angle(f, p->pos.x, p->pos.y, &a))
         {
             fix16_t dx = cos_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]
             fix16_t dy = sin_fix16(a + rotation);             // [-1.0, 1.0]  [s1.16]

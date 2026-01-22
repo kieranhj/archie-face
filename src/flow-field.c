@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
-
+#include <assert.h>
 
 #define FF_ANGLE_FIX16(f,i,j)       ((f)->angle[(j)*(f)->cols+(i)])
 #define ONE_OVER_TWO_TIMES_PI       (1.0f/(2.0f*M_PI_F))
@@ -43,7 +43,7 @@ static void flow_field_debug_init_with_noise(u32 param1, u32 param2);
 
 // ============================================================================
 
-inline int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a)
+int flow_field_get_nearest_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_t *a)
 {
     int col_idx = FIX16_TO_INT(FIX16_MUL(x, grid->cols_per_pixel));
     int row_idx = FIX16_TO_INT(FIX16_MUL(y, grid->rows_per_pixel));
@@ -53,8 +53,6 @@ inline int flow_field_get_angle(flow_field_t *grid, fix16_t x, fix16_t y, fix16_
         *a = FF_ANGLE_FIX16(grid,col_idx,row_idx);
         return 1;
     }
-
-    // TODO: Wrap?
     
     return 0;
 }
@@ -104,6 +102,16 @@ void *flow_field_kill(flow_field_t *grid)
     return NULL;
 }
 
+int flow_field_get_rows(flow_field_t *grid)
+{
+    return grid->rows;
+}
+
+int flow_field_get_cols(flow_field_t *grid)
+{
+    return grid->cols;
+}
+
 // ============================================================================
 
 void flow_field_draw_grid(flow_field_t *grid)
@@ -151,7 +159,7 @@ void flow_field_draw_curve(flow_field_t *grid, int x0, int y0, int num_steps, in
     {
         fix16_t a;
 
-        if (flow_field_get_angle(grid, x, y, &a))
+        if (flow_field_get_nearest_angle(grid, x, y, &a))
         {
             fix16_t dx = FIX16_MUL(cos_fix16(a), step_size);
             fix16_t dy = FIX16_MUL(sin_fix16(a), step_size);
@@ -209,6 +217,20 @@ void flow_field_init_with_noise(flow_field_t *grid, float smoothing)    // 0.1f
             FF_ANGLE_FIX16(grid,i,j) = FLOAT_TO_FIX16(n);
         }
     }
+}
+
+void flow_field_set_angle(flow_field_t *grid, int i, int j, fix16_t a)
+{
+    assert(i >= 0 && i < grid->cols);
+    assert(j >= 0 && j < grid->rows);
+    FF_ANGLE_FIX16(grid,i,j) = a & 0x00ffffff;
+}
+
+fix16_t flow_field_get_angle(flow_field_t *grid, int i, int j)
+{
+    assert(i >= 0 && i < grid->cols);
+    assert(j >= 0 && j < grid->rows);
+    return FF_ANGLE_FIX16(grid,i,j);
 }
 
 #if 0
