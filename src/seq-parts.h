@@ -1,0 +1,19 @@
+// ============================================================================
+// Sequence parts.
+// ============================================================================
+
+#ifndef __SEQ_PARTS_H__
+#define __SEQ_PARTS_H__
+
+// TODO: Macro magic to declare the functions with std naming?
+void seq_part1_init();
+void seq_part1_tick();
+void seq_part1_draw();
+void seq_part1_kill();
+
+void seq_part2_init();
+void seq_part2_tick();
+void seq_part2_draw();
+void seq_part2_kill();
+
+#endif // __SEQ_PARTS_H__

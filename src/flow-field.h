@@ -11,7 +11,6 @@
 typedef struct flow_field_s flow_field_t;
 
 extern u32 flow_field_show_grid;
-extern u32 flow_field_rotate_grid;
 
 void flow_field_init(flow_field_t *debug_grid);
 flow_field_t *flow_field_make(int cols, int rows);
@@ -19,7 +18,6 @@ void *flow_field_kill(flow_field_t *grid);
 
 void flow_field_init_with_noise(flow_field_t *grid, float smoothing);
 void flow_field_init_with_angle(flow_field_t *grid, fix16_t angle);
-//void flow_field_rotate_field(flow_field_t *grid, fix16_t angle);
 
 void flow_field_draw(flow_field_t *grid);
 void flow_field_draw_grid(flow_field_t *grid);

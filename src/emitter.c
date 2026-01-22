@@ -168,19 +168,25 @@ void emitter_draw(emitter_t *emitter)
     }
 }
 
-void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size)
+void emitter_draw_ramp_with_age(emitter_t *emitter, const u8 *ramp, int size)
 {
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
-        #if 0
         int age = g_frame_count - p->birth;
         if (age>=size) age=size-1;
         plot_point(FIX16_TO_INT(p->pos.x), FIX16_TO_INT(p->pos.y), ramp[age]);
-        #else
+    }
+}
+
+void emitter_draw_ramp_with_x(emitter_t *emitter, const u8 *ramp, int size)
+{
+    for(int i = 0; i < emitter->max_particles; i++)
+    {
+        particle_t *p = &emitter->particles[i];
         int px = FIX16_TO_INT(p->pos.x);
         int x = px / 2;//size * px / Screen_Width;
+        if (x>size) x=size-1;
         plot_point(px, FIX16_TO_INT(p->pos.y), ramp[x]);
-        #endif
     }
 }

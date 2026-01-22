@@ -23,6 +23,7 @@ void emitter_set_radius(emitter_t *emitter, int radius_x, int radius_y);
 
 void emitter_tick(emitter_t *emitter);
 void emitter_draw(emitter_t *emitter);
-void emitter_draw_with_ramp(emitter_t *emitter, const u8 *ramp, int size);
+void emitter_draw_ramp_with_age(emitter_t *emitter, const u8 *ramp, int size);
+void emitter_draw_ramp_with_x(emitter_t *emitter, const u8 *ramp, int size);
 
 #endif // __EMITTER_H__

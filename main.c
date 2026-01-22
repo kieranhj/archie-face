@@ -8,7 +8,7 @@
 
 // App modules.
 #include "src/colour.h"
-#include "src/seq.h"
+#include "src/sequence.h"
 
 // My libraries. :)
 #include "lib/debug.h"
@@ -31,8 +31,9 @@
 #include <assert.h>
 
 // ============================================================================
-
 // System vars.
+// ============================================================================
+
 u8* g_framebuffer = NULL;               // TODO: Should this be const?
 static int write_bank;
 volatile int pending_bank;              // updated during interrupt!
@@ -42,18 +43,25 @@ static int vsync_delta;
 static int last_vsync;
 
 // ============================================================================
+// Main loop vars.
+// ============================================================================
 
+int g_frame_count;
+static int debug_frame_rate;
+static int vsyncs_since_last_count;
+
+// ============================================================================
+// Debug.
 // TODO: Put these somewhere? (Or in a debug struct for context passing?)
+// ============================================================================
+
 static u32 debug_display = 1;
 static u32 debug_do_tick = 1;
 static u32 debug_step;
 u32 g_debug_rasters = 1;
 
-// Main loop vars.
-int g_frame_count;
-static int debug_frame_rate;
-static int vsyncs_since_last_count;
-
+// ============================================================================
+// System code.
 // ============================================================================
 
 void eventv_handler(int event_no, int event_param1, int event_param2, int event_param3, int event_param4)
@@ -117,6 +125,8 @@ void init()
     atexit(quit);
 }
 
+// ============================================================================
+// Main.
 // ============================================================================
 
 int main(int argc, char* argv[])
@@ -217,7 +227,7 @@ int main(int argc, char* argv[])
         {
             char vsync_str[16];
             //sprintf(vsync_str, "%d %d", vsync_delta, g_vsync_count);
-            sprintf(vsync_str, "%d %x", debug_frame_rate, mb);
+            sprintf(vsync_str, "%d %d", debug_frame_rate, seq_part_no);
             debug_plot_string_mode13(vsync_str);
         }
 
@@ -235,6 +245,8 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+// ============================================================================
+// Static data.
 // ============================================================================
 
 INCBIN(debug_font, "data/lib/Spectrum.bin");

@@ -20,10 +20,10 @@
 #define ONE_OVER_TWO_TIMES_PI       (1.0f/(2.0f*M_PI_F))
 
 #define FF_DEFAULT_NOISE_SMOOTHING  0.05f
+#define FF_DEFAULT_ANGLE            0
 
 static u32 vortex_radius = 50;      // debug.
 u32 flow_field_show_grid;
-u32 flow_field_rotate_grid;
 
 static flow_field_t *flow_field_debug_grid;
 
@@ -66,12 +66,11 @@ void flow_field_init(flow_field_t *debug_field)
     flow_field_debug_grid = debug_field;
 
     debug_register_key(RMKey_N, flow_field_debug_init_with_noise, 0, 0);
-    debug_register_key(RMKey_Z, flow_field_debug_init_with_angle, 0, 0);
+    debug_register_key(RMKey_Z, flow_field_debug_init_with_angle, FF_DEFAULT_ANGLE, 0);
     debug_register_key(RMKey_V, flow_field_debug_add_vortex, 1, -1);
     debug_register_key(RMKey_B, flow_field_debug_add_vortex, -1, 1);
     debug_register_key(RMKey_C, flow_field_debug_draw_curve, 0, 0);
     debug_register_key(RMKey_G, debug_toggle_word, (u32)&flow_field_show_grid, 0);
-    debug_register_key(RMKey_U, debug_toggle_word, (u32)&flow_field_rotate_grid, 0);
     debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
     debug_register_key(RMKey_2, debug_set_word, (u32)&vortex_radius, 40);
     debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);

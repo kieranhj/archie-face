@@ -5,6 +5,8 @@
 #ifndef __SEQUENCE_H__
 #define __SEQUENCE_H__
 
+extern int seq_part_no;
+
 void sequence_init();
 void sequence_tick();
 void sequence_draw();
