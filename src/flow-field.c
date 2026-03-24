@@ -36,10 +36,10 @@ struct flow_field_s {
 
 // ============================================================================
 
-static void flow_field_debug_add_vortex(u32 param1, u32 param2);
-static void flow_field_debug_draw_curve(u32 param1, u32 param2);
-static void flow_field_debug_init_with_angle(u32 param1, u32 param2);
-static void flow_field_debug_init_with_noise(u32 param1, u32 param2);
+static void flow_field_debug_add_vortex(uintptr_t param1, uintptr_t param2);
+static void flow_field_debug_draw_curve(uintptr_t param1, uintptr_t param2);
+static void flow_field_debug_init_with_angle(uintptr_t param1, uintptr_t param2);
+static void flow_field_debug_init_with_noise(uintptr_t param1, uintptr_t param2);
 
 // ============================================================================
 
@@ -68,16 +68,16 @@ void flow_field_init(flow_field_t *debug_field)
     debug_register_key(RMKey_V, flow_field_debug_add_vortex, 1, -1);
     debug_register_key(RMKey_B, flow_field_debug_add_vortex, -1, 1);
     debug_register_key(RMKey_C, flow_field_debug_draw_curve, 0, 0);
-    debug_register_key(RMKey_G, debug_toggle_word, (u32)&flow_field_show_grid, 0);
-    debug_register_key(RMKey_1, debug_set_word, (u32)&vortex_radius, 20);
-    debug_register_key(RMKey_2, debug_set_word, (u32)&vortex_radius, 40);
-    debug_register_key(RMKey_3, debug_set_word, (u32)&vortex_radius, 60);
-    debug_register_key(RMKey_4, debug_set_word, (u32)&vortex_radius, 80);
-    debug_register_key(RMKey_5, debug_set_word, (u32)&vortex_radius, 100);
-    debug_register_key(RMKey_6, debug_set_word, (u32)&vortex_radius, 120);
-    debug_register_key(RMKey_7, debug_set_word, (u32)&vortex_radius, 140);
-    debug_register_key(RMKey_8, debug_set_word, (u32)&vortex_radius, 160);
-    debug_register_key(RMKey_9, debug_set_word, (u32)&vortex_radius, 180);
+    debug_register_key(RMKey_G, debug_toggle_word, (uintptr_t)&flow_field_show_grid, 0);
+    debug_register_key(RMKey_1, debug_set_word, (uintptr_t)&vortex_radius, 20);
+    debug_register_key(RMKey_2, debug_set_word, (uintptr_t)&vortex_radius, 40);
+    debug_register_key(RMKey_3, debug_set_word, (uintptr_t)&vortex_radius, 60);
+    debug_register_key(RMKey_4, debug_set_word, (uintptr_t)&vortex_radius, 80);
+    debug_register_key(RMKey_5, debug_set_word, (uintptr_t)&vortex_radius, 100);
+    debug_register_key(RMKey_6, debug_set_word, (uintptr_t)&vortex_radius, 120);
+    debug_register_key(RMKey_7, debug_set_word, (uintptr_t)&vortex_radius, 140);
+    debug_register_key(RMKey_8, debug_set_word, (uintptr_t)&vortex_radius, 160);
+    debug_register_key(RMKey_9, debug_set_word, (uintptr_t)&vortex_radius, 180);
 }
 
 flow_field_t *flow_field_make(int cols, int rows)
@@ -320,7 +320,7 @@ void flow_field_insert_vortex(flow_field_t *grid, int x, int y, int fx, int fy, 
 
 // ============================================================================
 
-static void flow_field_debug_add_vortex(u32 param1, u32 param2)
+static void flow_field_debug_add_vortex(uintptr_t param1, uintptr_t param2)
 {
     int mouseX, mouseY;
     u8 mb;
@@ -328,7 +328,7 @@ static void flow_field_debug_add_vortex(u32 param1, u32 param2)
     flow_field_insert_vortex(flow_field_debug_grid, mouseX, mouseY, param1, param2, vortex_radius);
 }
 
-static void flow_field_debug_draw_curve(u32 param1, u32 param2)
+static void flow_field_debug_draw_curve(uintptr_t param1, uintptr_t param2)
 {
     (void)param1;
     (void)param2;
@@ -338,13 +338,13 @@ static void flow_field_debug_draw_curve(u32 param1, u32 param2)
     flow_field_draw_curve(flow_field_debug_grid, mouseX, mouseY, 128, rand_between(64,255));
 }
 
-static void flow_field_debug_init_with_angle(u32 param1, u32 param2)
+static void flow_field_debug_init_with_angle(uintptr_t param1, uintptr_t param2)
 {
     (void)param2;
     flow_field_init_with_angle(flow_field_debug_grid, (fix16_t)param1);
 }
 
-static void flow_field_debug_init_with_noise(u32 param1, u32 param2)
+static void flow_field_debug_init_with_noise(uintptr_t param1, uintptr_t param2)
 {
     (void)param1;
     (void)param2;

@@ -69,6 +69,9 @@ target_include_directories(archie_face_pc PRIVATE
 
 target_compile_definitions(archie_face_pc PRIVATE
     PLATFORM_PC
+    # M_PI_F / M_PI_2_F are ARM GCC extensions, not available on UCRT.
+    "M_PI_F=3.14159265358979323846f"
+    "M_PI_2_F=1.57079632679489661923f"
 )
 
 # ============================================================================
@@ -81,7 +84,9 @@ target_link_libraries(archie_face_pc PRIVATE SDL2::SDL2 m)
 # SDL2main provides WinMain on Windows; SDL_MAIN_HANDLED tells SDL2 not to
 # redefine main so our own main() is the entry point.
 if(WIN32)
-    target_link_libraries(archie_face_pc PRIVATE SDL2::SDL2main)
+    # SDL_MAIN_HANDLED tells SDL not to redefine main() — our main() is the
+    # entry point directly.  SDL2main is not needed and causes link order
+    # issues so we don't link it.
     target_compile_definitions(archie_face_pc PRIVATE SDL_MAIN_HANDLED)
 endif()
 

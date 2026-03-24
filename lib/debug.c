@@ -14,8 +14,8 @@ INCBIN_EXTERN(debug_font);
 struct debug_key {
     u8 key_code;
     key_callback key_func;
-    u32 key_param1;
-    u32 key_param2;
+    uintptr_t key_param1;
+    uintptr_t key_param2;
 };
 
 static u8 debug_font_mode13[Debug_MaxGlyphs * 8 * 8];
@@ -93,7 +93,7 @@ void debug_write_vidc(u32 vidc_reg)
 #endif
 }
 
-void debug_register_key(u8 key_code, key_callback key_func, u32 key_param1, u32 key_param2)
+void debug_register_key(u8 key_code, key_callback key_func, uintptr_t key_param1, uintptr_t key_param2)
 {
     if (debug_num_keys < Debug_MaxKeys) {
         debug_key_list[debug_num_keys].key_code = key_code;
@@ -135,18 +135,18 @@ void debug_do_keypress_callbacks()
     }
 }
 
-void debug_toggle_word(u32 addr, u32 val)
+void debug_toggle_word(uintptr_t addr, uintptr_t val)
 {
     (void)val;
     *((u32*)addr) ^= 1;
 }
 
-void debug_set_word(u32 addr, u32 val)
+void debug_set_word(uintptr_t addr, uintptr_t val)
 {
-    *((u32*)addr) = val;
+    *((u32*)addr) = (u32)val;
 }
 
-void debug_word_add(u32 addr, u32 val)
+void debug_word_add(uintptr_t addr, uintptr_t val)
 {
     *((int*)addr) += (int)val;
 }

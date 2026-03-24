@@ -25,7 +25,7 @@ static inline float vec2f_dot(vec2f a, vec2f b) {
 }
 
 // TODO: Probably shouldn't be here?
-inline int rand_between(int min, int max) {
+static inline int rand_between(int min, int max) {
     return min + (unsigned int)rand() % (max + 1 - min);    // NB. CLib standard rand() is unsigned int.
 }
 

@@ -1,8 +1,10 @@
 // ============================================================================
 // PC main loop — replaces main.c for the SDL2 build.
 //
-// Display:  320x256 8bpp surface blitted at PC_SCALE× into an SDL window.
-// Palette:  derived from archie256[] built by colour_init_palette().
+// Display:  8bpp framebuffer converted to ARGB each frame, uploaded to an
+//           SDL_Texture and rendered scaled into the window via SDL_Renderer.
+//           SDL_BlitScaled with palettized surfaces is unreliable across SDL2
+//           versions so we do the palette lookup ourselves.
 // Timing:   software-capped to TARGET_HZ (50 Hz).
 // Keys:     SDL events → RMKey_* values → debug_handle_keypress()
 //           so that all debug_register_key() callbacks work identically
@@ -22,6 +24,9 @@
 #include "lib/trig.h"
 #include "lib/video.h"
 #include "lib/archie.h"
+
+// PC archie stubs (for v_getScreenAddress).
+#include "archie/video.h"
 
 // PC platform.
 #include "platform/pc/params.h"
@@ -55,8 +60,11 @@ u32            g_debug_rasters = 1;
 // ============================================================================
 
 static SDL_Window   *s_window;
-static SDL_Surface  *s_screen;          // INDEX8, 320×256
-static SDL_Surface  *s_window_surface;
+static SDL_Renderer *s_renderer;
+static SDL_Texture  *s_texture;         // ARGB8888, 320×256, streaming
+
+// Per-frame ARGB conversion buffer — 8bpp indices → 32bpp via archie256[].
+static u32 s_pixels32[Screen_Width * Screen_Height];
 
 static u32  s_debug_display  = 1;
 static u32  s_debug_do_tick  = 1;
@@ -112,24 +120,25 @@ static u8 sdl_to_rmkey(SDL_Scancode sc)
 }
 
 // ============================================================================
-// Palette
+// Frame present — convert 8bpp framebuffer to ARGB and push to texture.
 // ============================================================================
 
-static void pc_set_sdl_palette(void)
+static void pc_present_frame(void)
 {
-    const u16   *archie256 = colour_get_archie256();
-    SDL_Color    sdl_pal[256];
+    const u16 *archie256 = colour_get_archie256();
 
-    for (int i = 0; i < 256; i++) {
-        u16 rgb4    = archie256[i];
-        // Each nibble is a 4-bit channel; scale to 8-bit by multiplying by 17.
-        sdl_pal[i].r = (u8)(((rgb4 >> 8) & 0xf) * 17);
-        sdl_pal[i].g = (u8)(((rgb4 >> 4) & 0xf) * 17);
-        sdl_pal[i].b = (u8)(((rgb4 >> 0) & 0xf) * 17);
-        sdl_pal[i].a = 255;
+    for (int i = 0; i < Screen_Width * Screen_Height; i++) {
+        u16 rgb4 = archie256[g_framebuffer[i]];
+        u8  r    = (u8)(((rgb4 >> 8) & 0xf) * 17);
+        u8  g    = (u8)(((rgb4 >> 4) & 0xf) * 17);
+        u8  b    = (u8)(((rgb4 >> 0) & 0xf) * 17);
+        s_pixels32[i] = (0xFF000000u) | ((u32)r << 16) | ((u32)g << 8) | b;
     }
 
-    SDL_SetPaletteColors(s_screen->format->palette, sdl_pal, 0, 256);
+    SDL_UpdateTexture(s_texture, NULL, s_pixels32, Screen_Width * (int)sizeof(u32));
+    SDL_RenderClear(s_renderer);
+    SDL_RenderCopy(s_renderer, s_texture, NULL, NULL);
+    SDL_RenderPresent(s_renderer);
 }
 
 // ============================================================================
@@ -159,13 +168,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    s_window_surface = SDL_GetWindowSurface(s_window);
+    s_renderer = SDL_CreateRenderer(s_window, -1, SDL_RENDERER_ACCELERATED);
+    if (!s_renderer) {
+        fprintf(stderr, "SDL_CreateRenderer: %s\n", SDL_GetError());
+        SDL_DestroyWindow(s_window);
+        SDL_Quit();
+        return 1;
+    }
 
-    // 8bpp palettized surface — exact semantic match for the Archimedes framebuffer.
-    s_screen = SDL_CreateRGBSurfaceWithFormat(
-        0, Screen_Width, Screen_Height, 8, SDL_PIXELFORMAT_INDEX8);
-    if (!s_screen) {
-        fprintf(stderr, "SDL_CreateRGBSurfaceWithFormat: %s\n", SDL_GetError());
+    // Nearest-neighbour scaling keeps pixels sharp at integer multiples.
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
+    s_texture = SDL_CreateTexture(
+        s_renderer, SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        Screen_Width, Screen_Height);
+    if (!s_texture) {
+        fprintf(stderr, "SDL_CreateTexture: %s\n", SDL_GetError());
+        SDL_DestroyRenderer(s_renderer);
         SDL_DestroyWindow(s_window);
         SDL_Quit();
         return 1;
@@ -173,20 +193,17 @@ int main(int argc, char *argv[])
 
     // ---- Demo init ---------------------------------------------------------
     colour_init_palette();
-    pc_set_sdl_palette();
     trig_init();
     debug_init();
     params_init();
 
-    // Mirror the debug key registrations from main.c.
-    debug_register_key(RMKey_D,     debug_toggle_word, (u32)&s_debug_display, 0);
-    debug_register_key(RMKey_R,     debug_toggle_word, (u32)&g_debug_rasters, 0);
-    debug_register_key(RMKey_S,     debug_set_word,    (u32)&s_debug_step, 1);
-    debug_register_key(RMKey_Space, debug_toggle_word, (u32)&s_debug_do_tick, 0);
-
+    // Note: toggle callbacks (D/R/S/Space) are handled directly in the event
+    // loop below — using debug_register_key with (u32)&ptr would truncate the
+    // 64-bit address and segfault on dereference.
+    // sequence_init() registers arrow-key callbacks with param=0, which is safe.
     sequence_init();
 
-    g_framebuffer = (u8 *)s_screen->pixels;
+    g_framebuffer = v_getScreenAddress();   // static buffer in video_pc.c
 
     // ---- Main loop ---------------------------------------------------------
     int running = 1;
@@ -198,25 +215,31 @@ int main(int argc, char *argv[])
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
-            if (e.type == SDL_QUIT) {
-                running = 0;
-                break;
-            }
-            if (e.type == SDL_KEYDOWN) {
-                if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                    running = 0;
-                    break;
-                }
-                // Params navigation (PC-only, bypass debug key system).
-                if (e.key.keysym.scancode == SDL_SCANCODE_TAB) {
-                    if (e.key.keysym.mod & KMOD_SHIFT) params_prev();
-                    else                                params_next();
-                }
-                if (e.key.keysym.scancode == SDL_SCANCODE_RIGHTBRACKET) params_inc();
-                if (e.key.keysym.scancode == SDL_SCANCODE_LEFTBRACKET)  params_dec();
+            if (e.type == SDL_QUIT) { running = 0; break; }
 
-                // Demo control keys → RMKey dispatch.
-                u8 rmkey = sdl_to_rmkey(e.key.keysym.scancode);
+            if (e.type == SDL_KEYDOWN) {
+                SDL_Scancode sc = e.key.keysym.scancode;
+
+                if (sc == SDL_SCANCODE_ESCAPE) { running = 0; break; }
+
+                // Toggle keys handled directly — avoids (u32)&ptr truncation
+                // on 64-bit which segfaults inside debug_toggle_word.
+                switch (sc) {
+                    case SDL_SCANCODE_D:     s_debug_display ^= 1; break;
+                    case SDL_SCANCODE_R:     g_debug_rasters ^= 1; break;
+                    case SDL_SCANCODE_SPACE: s_debug_do_tick ^= 1; break;
+                    case SDL_SCANCODE_S:     s_debug_step     = 1; break;
+                    case SDL_SCANCODE_TAB:
+                        if (e.key.keysym.mod & KMOD_SHIFT) params_prev();
+                        else                                params_next();
+                        break;
+                    case SDL_SCANCODE_RIGHTBRACKET: params_inc(); break;
+                    case SDL_SCANCODE_LEFTBRACKET:  params_dec(); break;
+                    default: break;
+                }
+
+                // Forward to debug system for sequence.c's arrow-key callbacks.
+                u8 rmkey = sdl_to_rmkey(sc);
                 if (rmkey) debug_handle_keypress(1, rmkey);
             }
             if (e.type == SDL_KEYUP) {
@@ -238,8 +261,6 @@ int main(int argc, char *argv[])
         }
 
         // ---- Draw ----------------------------------------------------------
-        SDL_LockSurface(s_screen);
-
         mem_set_fast((u32 *)g_framebuffer, 0, Screen_SizeBytes);
         sequence_draw();
 
@@ -251,12 +272,8 @@ int main(int argc, char *argv[])
 
         params_draw();
 
-        SDL_UnlockSurface(s_screen);
-
         // ---- Present -------------------------------------------------------
-        SDL_Rect dst = { 0, 0, Screen_Width * PC_SCALE, Screen_Height * PC_SCALE };
-        SDL_BlitScaled(s_screen, NULL, s_window_surface, &dst);
-        SDL_UpdateWindowSurface(s_window);
+        pc_present_frame();
 
         // ---- Frame cap -----------------------------------------------------
         Uint32 elapsed = SDL_GetTicks() - frame_start;
@@ -266,7 +283,8 @@ int main(int argc, char *argv[])
 
     // ---- Shutdown ----------------------------------------------------------
     sequence_kill();
-    SDL_FreeSurface(s_screen);
+    SDL_DestroyTexture(s_texture);
+    SDL_DestroyRenderer(s_renderer);
     SDL_DestroyWindow(s_window);
     SDL_Quit();
     return 0;

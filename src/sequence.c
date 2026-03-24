@@ -30,8 +30,8 @@ static int seq_new_part_no = -1;
 
 // ============================================================================
 
-static void seq_debug_next_part(u32 param1, u32 param2);
-static void seq_debug_restart_part(u32 param1, u32 param2);
+static void seq_debug_next_part(uintptr_t param1, uintptr_t param2);
+static void seq_debug_restart_part(uintptr_t param1, uintptr_t param2);
 
 // ============================================================================
 
@@ -78,14 +78,14 @@ void sequence_kill()
 // Debug code.
 // ============================================================================
 
-static void seq_debug_next_part(u32 param1, u32 param2)
+static void seq_debug_next_part(uintptr_t param1, uintptr_t param2)
 {
     (void)param1;
     (void)param2;
     sequence_set_part(seq_part_no+1);
 }
 
-static void seq_debug_restart_part(u32 param1, u32 param2)
+static void seq_debug_restart_part(uintptr_t param1, uintptr_t param2)
 {
     (void)param1;
     (void)param2;
