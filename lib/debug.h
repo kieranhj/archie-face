@@ -22,4 +22,10 @@ void debug_toggle_word(u32 addr, u32 val);
 void debug_set_word(u32 addr, u32 val);
 void debug_word_add(u32 addr, u32 val);
 
+// PC-only: position-aware string render for the params panel overlay.
+#ifdef PLATFORM_PC
+void debug_plot_string_at(const char *string, int x, int y);
+void debug_plot_string_at_inv(const char *string, int x, int y);
+#endif
+
 #endif // __DEBUG_H__

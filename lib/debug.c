@@ -79,14 +79,18 @@ void debug_plot_string_mode13(const char *string)
 
 void debug_write_vidc(u32 vidc_reg)
 {
+#ifndef PLATFORM_PC
     asm volatile("swi " swiToConst(OS_EnterOS) "\n"
                  "mov r1, " swiToConst(VIDC_Write) "\n"
                  "str %0, [r1]\n"
                  "teqp pc, #0\n"
                  "mov r0, r0"
                 :            // outputs
-                : "r"(vidc_reg)  // inputs 
+                : "r"(vidc_reg)  // inputs
                 : "r0", "r1", "cc"); // clobbers
+#else
+    (void)vidc_reg; // SET_BORDER is a no-op on PC
+#endif
 }
 
 void debug_register_key(u8 key_code, key_callback key_func, u32 key_param1, u32 key_param2)
@@ -146,3 +150,43 @@ void debug_word_add(u32 addr, u32 val)
 {
     *((int*)addr) += (int)val;
 }
+
+// ============================================================================
+// PC-only: position-aware string rendering for the params panel.
+// debug_plot_string_at()     — white glyphs (0xff pixels)
+// debug_plot_string_at_inv() — inverted glyphs (0x00 on 0xff) for selection
+// ============================================================================
+
+#ifdef PLATFORM_PC
+static void plot_string_at_colour(const char *string, int x, int y, u8 fg, u8 bg)
+{
+    char ascii;
+    int  cx = x;
+    while ((ascii = *string++))
+    {
+        int glyph = ascii - 32;
+        if (glyph < 0 || glyph >= Debug_MaxGlyphs) { cx += 8; continue; }
+
+        u8 *gp  = &debug_font_mode13[glyph * 64];
+        u8 *row = g_framebuffer + y * Screen_Stride + cx;
+
+        for (int r = 0; r < 8; r++)
+        {
+            for (int c = 0; c < 8; c++)
+                row[c] = gp[r * 8 + c] ? fg : bg;
+            row += Screen_Stride;
+        }
+        cx += 8;
+    }
+}
+
+void debug_plot_string_at(const char *string, int x, int y)
+{
+    plot_string_at_colour(string, x, y, 0xff, 0x00);
+}
+
+void debug_plot_string_at_inv(const char *string, int x, int y)
+{
+    plot_string_at_colour(string, x, y, 0x00, 0xff);
+}
+#endif // PLATFORM_PC

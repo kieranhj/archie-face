@@ -263,6 +263,11 @@ u8 colour_rgb4_to_index(u16 rgb)
     return minIndex;
 }
 
+// PC-only: return the computed archie256 palette for SDL palette setup.
+#ifdef PLATFORM_PC
+const u16 *colour_get_archie256(void) { return archie256; }
+#endif
+
 // Floating point HSV values to RGB4. Yoinked from https://stackoverflow.com/questions/51203917/math-behind-hsv-to-rgb-conversion-of-colors
 u16 colour_hsv_to_rgb4(float h, float s, float v)
 {

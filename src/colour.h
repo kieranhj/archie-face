@@ -20,4 +20,11 @@ u16 colour_hsv_to_rgb4(float h, float s, float v);
 
 void colour_make_ramp(u8 *ramp, int size, u16 from, u16 to);
 
+// PC-only: exposes the archie256 lookup table so the SDL palette can be
+// populated after colour_init_palette().  Returns pointer to u16[256] where
+// each entry is 0x0RGB (4 bits per channel).
+#ifdef PLATFORM_PC
+const u16 *colour_get_archie256(void);
+#endif
+
 #endif // __COLOUR_H__
