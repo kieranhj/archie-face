@@ -27,7 +27,7 @@
 #define PANEL_WIDTH  280
 #define PANEL_HEIGHT 400
 
-typedef enum { PARAM_FLOAT, PARAM_INT } param_type_t;
+typedef enum { PARAM_FLOAT, PARAM_INT, PARAM_BOOL } param_type_t;
 
 typedef struct {
     char         name[24];
@@ -59,12 +59,24 @@ void params_clear(void)
     s_count = 0;
 }
 
-void param_float(const char *name, float *ptr, float min, float max, float step)
+// Return existing entry with this name, or allocate a new slot.
+static param_entry_t *param_find_or_add(const char *name)
 {
-    if (s_count >= PARAMS_MAX) return;
+    for (int i = 0; i < s_count; i++)
+        if (strncmp(s_params[i].name, name, sizeof(s_params[i].name)) == 0)
+            return &s_params[i];
+
+    if (s_count >= PARAMS_MAX) return NULL;
     param_entry_t *e = &s_params[s_count++];
     strncpy(e->name, name, sizeof(e->name) - 1);
     e->name[sizeof(e->name) - 1] = '\0';
+    return e;
+}
+
+void param_float(const char *name, float *ptr, float min, float max, float step)
+{
+    param_entry_t *e = param_find_or_add(name);
+    if (!e) return;
     e->type        = PARAM_FLOAT;
     e->ptr.f       = ptr;
     e->range.f.min  = min;
@@ -74,15 +86,31 @@ void param_float(const char *name, float *ptr, float min, float max, float step)
 
 void param_int(const char *name, int *ptr, int min, int max, int step)
 {
-    if (s_count >= PARAMS_MAX) return;
-    param_entry_t *e = &s_params[s_count++];
-    strncpy(e->name, name, sizeof(e->name) - 1);
-    e->name[sizeof(e->name) - 1] = '\0';
+    param_entry_t *e = param_find_or_add(name);
+    if (!e) return;
     e->type        = PARAM_INT;
     e->ptr.i       = ptr;
     e->range.i.min  = min;
     e->range.i.max  = max;
     e->range.i.step = step;
+}
+
+void param_bool(const char *name, int *ptr)
+{
+    param_entry_t *e = param_find_or_add(name);
+    if (!e) return;
+    e->type  = PARAM_BOOL;
+    e->ptr.i = ptr;
+}
+
+void param_remove(const char *name)
+{
+    for (int i = 0; i < s_count; i++) {
+        if (strncmp(s_params[i].name, name, sizeof(s_params[i].name)) == 0) {
+            s_params[i] = s_params[--s_count];
+            return;
+        }
+    }
 }
 
 // ============================================================================
@@ -107,32 +135,40 @@ void params_draw(void)
             param_entry_t *e = &s_params[i];
             char val[16];
 
-            // Name and current value on one line.
-            if (e->type == PARAM_FLOAT)
-                snprintf(val, sizeof(val), "%.4f", *e->ptr.f);
-            else
-                snprintf(val, sizeof(val), "%d", *e->ptr.i);
-
-            nk_layout_row_dynamic(s_nk, 16, 2);
-            nk_label(s_nk, e->name, NK_TEXT_LEFT);
-            nk_label(s_nk, val, NK_TEXT_RIGHT);
-
-            // Slider.
-            nk_layout_row_dynamic(s_nk, 20, 1);
-
-            if (e->type == PARAM_FLOAT)
+            if (e->type == PARAM_BOOL)
             {
-                nk_slider_float(s_nk,
-                    e->range.f.min, e->ptr.f, e->range.f.max,
-                    e->range.f.step);
+                nk_layout_row_dynamic(s_nk, 20, 1);
+                nk_checkbox_label(s_nk, e->name, e->ptr.i);
             }
             else
             {
-                int v = *e->ptr.i;
-                nk_slider_int(s_nk,
-                    e->range.i.min, &v, e->range.i.max,
-                    e->range.i.step);
-                *e->ptr.i = v;
+                // Name and current value on one line.
+                if (e->type == PARAM_FLOAT)
+                    snprintf(val, sizeof(val), "%.4f", *e->ptr.f);
+                else
+                    snprintf(val, sizeof(val), "%d", *e->ptr.i);
+
+                nk_layout_row_dynamic(s_nk, 16, 2);
+                nk_label(s_nk, e->name, NK_TEXT_LEFT);
+                nk_label(s_nk, val, NK_TEXT_RIGHT);
+
+                // Slider.
+                nk_layout_row_dynamic(s_nk, 20, 1);
+
+                if (e->type == PARAM_FLOAT)
+                {
+                    nk_slider_float(s_nk,
+                        e->range.f.min, e->ptr.f, e->range.f.max,
+                        e->range.f.step);
+                }
+                else
+                {
+                    int v = *e->ptr.i;
+                    nk_slider_int(s_nk,
+                        e->range.i.min, &v, e->range.i.max,
+                        e->range.i.step);
+                    *e->ptr.i = v;
+                }
             }
         }
     }

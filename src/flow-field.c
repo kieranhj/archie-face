@@ -10,6 +10,7 @@
 #include "../lib/plot.h"
 #include "../lib/trig.h"
 #include "../lib/vector.h"
+#include "platform/pc/params.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -78,6 +79,9 @@ void flow_field_init(flow_field_t *debug_field)
     debug_register_key(RMKey_7, debug_set_word, (uintptr_t)&vortex_radius, 140);
     debug_register_key(RMKey_8, debug_set_word, (uintptr_t)&vortex_radius, 160);
     debug_register_key(RMKey_9, debug_set_word, (uintptr_t)&vortex_radius, 180);
+
+    param_bool("show grid", &flow_field_show_grid);
+    param_int("vortex radius", &vortex_radius, 1, 160, 1);
 }
 
 flow_field_t *flow_field_make(int cols, int rows)

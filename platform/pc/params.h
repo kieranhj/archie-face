@@ -21,8 +21,10 @@ void params_init(struct nk_context *ctx);
 // from the previous part are removed.
 void params_clear(void);
 
-void param_float(const char *name, float *ptr, float min, float max, float step);
-void param_int  (const char *name, int   *ptr, int   min, int   max, int   step);
+void param_float (const char *name, float *ptr, float min, float max, float step);
+void param_int   (const char *name, int   *ptr, int   min, int   max, int   step);
+void param_bool  (const char *name, int   *ptr);
+void param_remove(const char *name);
 
 // Build the Nuklear parameter panel.  Call each frame between nk_input_end()
 // and nk_sdl_render().
@@ -34,5 +36,7 @@ void params_draw(void);
 #define params_clear()
 #define param_float(n, p, lo, hi, s)  ((void)0)
 #define param_int(n,   p, lo, hi, s)  ((void)0)
+#define param_bool(n, p)              ((void)0)
+#define param_remove(n)               ((void)0)
 
 #endif // PLATFORM_PC
