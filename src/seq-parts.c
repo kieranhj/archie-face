@@ -25,6 +25,9 @@ static float emitter2_rot = 0.0f;
 
 void seq_part1_init()
 {
+    // Register PC parameter widgets.
+    params_clear();
+
     // Flow field init.
     field1 = flow_field_make(20, 16);
     flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.
@@ -95,6 +98,9 @@ void seq_part1_kill()
 
 void seq_part2_init()
 {
+    // Register PC parameter widgets.
+    params_clear();
+
     // Flow field init.
     field1 = flow_field_make(20, 16);
     flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.
@@ -190,6 +196,9 @@ static void add_two_fields(flow_field_t *grid1, flow_field_t *grid2, fix16_t ble
 
 void seq_part3_init()
 {
+    // Register PC parameter widgets.
+    params_clear();
+
     // Flow field init.
     field1 = flow_field_make(40, 32);
     flow_field_init(field1);  // inits debug.
@@ -272,6 +281,7 @@ static float seq_part4_cam_pos_z = 256.0f + 10.0f;
 
 void seq_part4_init()
 {
+    // Register PC parameter widgets.
     params_clear();
     param_float("cam_pos_y", &seq_part4_cam_pos_y, 0.0f, 128.0f, 0.1f);
     param_float("cam_pos_z", &seq_part4_cam_pos_z, 0.0f, 512.0f, 0.1f);
