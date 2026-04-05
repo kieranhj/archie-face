@@ -196,25 +196,22 @@ void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z)
     // Camera looking at (0,0,0)
     // Camera distance = camera z - particle.y;
 
-    // Particle at (160,128)
-    // Cam Z = 266
-    // Cam dist = 266-128 = 138
-    // Persp = 128/138 = 0.927
-    // px = 160-160 = 0*0.927 = 0
-    // py = 64 * 0.927 = 59
-
     u8 col = emitter->colour;       // FIX16_TO_INT(a) for colour from direction.
 
     for(int i = 0; i < emitter->max_particles; i++)
     {
         particle_t *p = &emitter->particles[i];
 
+        // TODO: No floating point!
         float cam_dist = cam_z - FIX16_TO_FLOAT(p->pos.y);
+        // VIEWPORT SCALE=128.0f
         float persp = 128.0f / cam_dist;      // Turn this into a lookup later.
 
+        // MOVES THE GRID TO BE CENTRED ON (0,0)
         float px = (FIX16_TO_FLOAT(p->pos.x)-160.0f) * persp;
         float py = cam_y * persp;
 
+        // VIEWPORT CENTRE (160,128)
         plot_point((int)px+160, (int)py+128, col);
     }
 }

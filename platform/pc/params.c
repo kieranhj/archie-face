@@ -1,19 +1,31 @@
 // ============================================================================
-// PC parameter panel implementation.
-// Renders a list of registered float/int parameters as a text overlay in the
-// top-right corner of the framebuffer using the existing debug font.
+// PC parameter panel — Nuklear-based implementation.
+//
+// Each registered float becomes a slider, each int becomes a numeric property.
+// The panel is a draggable, collapsible Nuklear window anchored top-right.
 // ============================================================================
 
 #include "platform/pc/params.h"
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#include "nuklear/nuklear.h"
+
 #include "src/globals.h"
-#include "lib/debug.h"
 
 #include <stdio.h>
 #include <string.h>
 
 // ============================================================================
 
-#define PARAMS_MAX 32
+#define PARAMS_MAX   32
+#define PANEL_WIDTH  280
+#define PANEL_HEIGHT 400
 
 typedef enum { PARAM_FLOAT, PARAM_INT } param_type_t;
 
@@ -30,22 +42,21 @@ typedef struct {
     } range;
 } param_entry_t;
 
-static param_entry_t s_params[PARAMS_MAX];
-static int           s_count;
-static int           s_selected;
+static param_entry_t      s_params[PARAMS_MAX];
+static int                s_count;
+static struct nk_context *s_nk;
 
 // ============================================================================
 
-void params_init(void)
+void params_init(struct nk_context *ctx)
 {
-    s_count    = 0;
-    s_selected = 0;
+    s_nk    = ctx;
+    s_count = 0;
 }
 
 void params_clear(void)
 {
-    s_count    = 0;
-    s_selected = 0;
+    s_count = 0;
 }
 
 void param_float(const char *name, float *ptr, float min, float max, float step)
@@ -76,78 +87,54 @@ void param_int(const char *name, int *ptr, int min, int max, int step)
 
 // ============================================================================
 
-void params_next(void)
-{
-    if (s_count > 0) s_selected = (s_selected + 1) % s_count;
-}
-
-void params_prev(void)
-{
-    if (s_count > 0) s_selected = (s_selected + s_count - 1) % s_count;
-}
-
-void params_inc(void)
-{
-    if (s_count == 0) return;
-    param_entry_t *e = &s_params[s_selected];
-    if (e->type == PARAM_FLOAT) {
-        *e->ptr.f += e->range.f.step;
-        if (*e->ptr.f > e->range.f.max) *e->ptr.f = e->range.f.max;
-    } else {
-        *e->ptr.i += e->range.i.step;
-        if (*e->ptr.i > e->range.i.max) *e->ptr.i = e->range.i.max;
-    }
-}
-
-void params_dec(void)
-{
-    if (s_count == 0) return;
-    param_entry_t *e = &s_params[s_selected];
-    if (e->type == PARAM_FLOAT) {
-        *e->ptr.f -= e->range.f.step;
-        if (*e->ptr.f < e->range.f.min) *e->ptr.f = e->range.f.min;
-    } else {
-        *e->ptr.i -= e->range.i.step;
-        if (*e->ptr.i < e->range.i.min) *e->ptr.i = e->range.i.min;
-    }
-}
-
-// ============================================================================
-// Text rendering — draw each param as one line using the debug font.
-// Uses debug_plot_string_at() which is exposed under PLATFORM_PC in debug.h.
-// Panel is anchored to the top-right corner; selected entry is highlighted
-// by inverting the glyph colour (0xff background becomes 0x00, and vice versa).
-// ============================================================================
-
-// Characters per display line, including name + "= " + value.
-#define LINE_CHARS 30
-// X pixel position of the panel (from right edge).
-#define PANEL_X (Screen_Width - LINE_CHARS * 8)
-// Vertical spacing between lines in pixels (one font row = 8px).
-#define LINE_H 9
-
 void params_draw(void)
 {
-    if (s_count == 0) return;
+    if (!s_nk || s_count == 0) return;
 
-    for (int idx = 0; idx < s_count; idx++)
+    // Anchor the panel to the top-right of the window.
+    int win_w = Screen_Width * 3;   // PC_SCALE
+    struct nk_rect bounds = nk_rect(
+        (float)(win_w - PANEL_WIDTH - 10), 10,
+        PANEL_WIDTH, PANEL_HEIGHT);
+
+    if (nk_begin(s_nk, "Parameters", bounds,
+                 NK_WINDOW_BORDER | NK_WINDOW_MOVABLE |
+                 NK_WINDOW_SCALABLE | NK_WINDOW_TITLE |
+                 NK_WINDOW_MINIMIZABLE))
     {
-        param_entry_t *e = &s_params[idx];
-        char line[LINE_CHARS + 1];
-        char val[12];
+        for (int i = 0; i < s_count; i++)
+        {
+            param_entry_t *e = &s_params[i];
+            char val[16];
 
-        if (e->type == PARAM_FLOAT)
-            snprintf(val, sizeof(val), "%.4f", *e->ptr.f);
-        else
-            snprintf(val, sizeof(val), "%d", *e->ptr.i);
+            // Name and current value on one line.
+            if (e->type == PARAM_FLOAT)
+                snprintf(val, sizeof(val), "%.4f", *e->ptr.f);
+            else
+                snprintf(val, sizeof(val), "%d", *e->ptr.i);
 
-        snprintf(line, sizeof(line), "%-16s%s", e->name, val);
+            nk_layout_row_dynamic(s_nk, 16, 2);
+            nk_label(s_nk, e->name, NK_TEXT_LEFT);
+            nk_label(s_nk, val, NK_TEXT_RIGHT);
 
-        int y = idx * LINE_H;
+            // Slider.
+            nk_layout_row_dynamic(s_nk, 20, 1);
 
-        if (idx == s_selected)
-            debug_plot_string_at_inv(line, PANEL_X, y);
-        else
-            debug_plot_string_at(line, PANEL_X, y);
+            if (e->type == PARAM_FLOAT)
+            {
+                nk_slider_float(s_nk,
+                    e->range.f.min, e->ptr.f, e->range.f.max,
+                    e->range.f.step);
+            }
+            else
+            {
+                int v = *e->ptr.i;
+                nk_slider_int(s_nk,
+                    e->range.i.min, &v, e->range.i.max,
+                    e->range.i.step);
+                *e->ptr.i = v;
+            }
+        }
     }
+    nk_end(s_nk);
 }

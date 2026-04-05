@@ -9,6 +9,7 @@
 #include "emitter.h"
 #include "colour.h"
 #include "../lib/trig.h"
+#include "platform/pc/params.h"
 
 // ============================================================================
 // PART 1.
@@ -271,6 +272,10 @@ static float seq_part4_cam_pos_z = 256.0f + 10.0f;
 
 void seq_part4_init()
 {
+    params_clear();
+    param_float("cam_pos_y", &seq_part4_cam_pos_y, 0.0f, 128.0f, 0.1f);
+    param_float("cam_pos_z", &seq_part4_cam_pos_z, 0.0f, 512.0f, 0.1f);
+
     // Flow field init.
     field1 = flow_field_make(20, 16);
     flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.

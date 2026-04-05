@@ -5,17 +5,17 @@
 // On Archimedes all calls compile to nothing, so the same seq-parts code
 // builds for both targets.
 //
-// Navigation keys (PC):
-//   Tab / Shift+Tab  — next / previous parameter
-//   ]                — increase selected parameter by one step
-//   [                — decrease selected parameter by one step
+// On PC the parameters are rendered as a draggable Nuklear panel with sliders
+// and numeric properties.  Mouse interaction is handled by Nuklear directly.
 // ============================================================================
 
 #pragma once
 
 #ifdef PLATFORM_PC
 
-void params_init(void);
+struct nk_context;  // forward decl — avoids pulling nuklear.h into every user
+
+void params_init(struct nk_context *ctx);
 
 // Call params_clear() at the top of each seq_partN_init() so stale entries
 // from the previous part are removed.
@@ -24,18 +24,13 @@ void params_clear(void);
 void param_float(const char *name, float *ptr, float min, float max, float step);
 void param_int  (const char *name, int   *ptr, int   min, int   max, int   step);
 
-// Called from main_pc.c in response to navigation keypresses.
-void params_next(void);
-void params_prev(void);
-void params_inc (void);
-void params_dec (void);
-
-// Render the parameter panel into g_framebuffer.  Call after sequence_draw().
+// Build the Nuklear parameter panel.  Call each frame between nk_input_end()
+// and nk_sdl_render().
 void params_draw(void);
 
 #else // ---- Archimedes no-ops -----------------------------------------------
 
-#define params_init()
+#define params_init(ctx)
 #define params_clear()
 #define param_float(n, p, lo, hi, s)  ((void)0)
 #define param_int(n,   p, lo, hi, s)  ((void)0)

@@ -32,6 +32,7 @@ add_executable(archie_face_pc
     platform/pc/mouse_pc.c
     platform/pc/file_pc.c
     platform/pc/params.c
+    platform/pc/nuklear_impl.c
 
     # Generated font data (satisfies INCBIN_EXTERN(debug_font) in debug.c)
     ${FONT_GEN}

@@ -3,13 +3,12 @@
 //
 // Display:  8bpp framebuffer converted to ARGB each frame, uploaded to an
 //           SDL_Texture and rendered scaled into the window via SDL_Renderer.
-//           SDL_BlitScaled with palettized surfaces is unreliable across SDL2
-//           versions so we do the palette lookup ourselves.
+//           Nuklear UI is rendered on top at native window resolution.
 // Timing:   software-capped to TARGET_HZ (50 Hz).
 // Keys:     SDL events → RMKey_* values → debug_handle_keypress()
 //           so that all debug_register_key() callbacks work identically
 //           to the Archimedes build.
-// Params:   Tab/Shift+Tab to select, ]/[ to adjust live parameters.
+// Params:   draggable Nuklear panel with sliders / numeric properties.
 // ============================================================================
 
 // App modules.
@@ -30,6 +29,18 @@
 
 // PC platform.
 #include "platform/pc/params.h"
+
+// Nuklear (header-only; implementation lives in nuklear_impl.c).
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#include "nuklear/nuklear.h"
+#define NK_SDL_RENDERER_SDL_H <SDL2/SDL.h>
+#include "nuklear/nuklear_sdl_renderer.h"
 
 // SDL2.
 #include <SDL2/SDL.h>
@@ -62,6 +73,8 @@ u32            g_debug_rasters = 1;
 static SDL_Window   *s_window;
 static SDL_Renderer *s_renderer;
 static SDL_Texture  *s_texture;         // ARGB8888, 320×256, streaming
+
+static struct nk_context *s_nk;         // Nuklear context
 
 // Per-frame ARGB conversion buffer — 8bpp indices → 32bpp via archie256[].
 static u32 s_pixels32[Screen_Width * Screen_Height];
@@ -121,6 +134,7 @@ static u8 sdl_to_rmkey(SDL_Scancode sc)
 
 // ============================================================================
 // Frame present — convert 8bpp framebuffer to ARGB and push to texture.
+// Does NOT call SDL_RenderPresent — Nuklear renders on top first.
 // ============================================================================
 
 static void pc_present_frame(void)
@@ -138,7 +152,7 @@ static void pc_present_frame(void)
     SDL_UpdateTexture(s_texture, NULL, s_pixels32, Screen_Width * (int)sizeof(u32));
     SDL_RenderClear(s_renderer);
     SDL_RenderCopy(s_renderer, s_texture, NULL, NULL);
-    SDL_RenderPresent(s_renderer);
+    // SDL_RenderPresent is called after Nuklear renders on top.
 }
 
 // ============================================================================
@@ -191,11 +205,20 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // ---- Nuklear init ------------------------------------------------------
+    s_nk = nk_sdl_init(s_window, s_renderer);
+    {
+        struct nk_font_atlas *atlas;
+        nk_sdl_font_stash_begin(&atlas);
+        // NULL = use built-in default font.
+        nk_sdl_font_stash_end();
+    }
+
     // ---- Demo init ---------------------------------------------------------
     colour_init_palette();
     trig_init();
     debug_init();
-    params_init();
+    params_init(s_nk);
 
     // Note: toggle callbacks (D/R/S/Space) are handled directly in the event
     // loop below — using debug_register_key with (u32)&ptr would truncate the
@@ -212,10 +235,14 @@ int main(int argc, char *argv[])
         Uint32 frame_start = SDL_GetTicks();
 
         // ---- Events --------------------------------------------------------
+        nk_input_begin(s_nk);
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
             if (e.type == SDL_QUIT) { running = 0; break; }
+
+            // Let Nuklear see every event for widget interaction.
+            nk_sdl_handle_event(&e);
 
             if (e.type == SDL_KEYDOWN) {
                 SDL_Scancode sc = e.key.keysym.scancode;
@@ -229,12 +256,6 @@ int main(int argc, char *argv[])
                     case SDL_SCANCODE_R:     g_debug_rasters ^= 1; break;
                     case SDL_SCANCODE_SPACE: s_debug_do_tick ^= 1; break;
                     case SDL_SCANCODE_S:     s_debug_step     = 1; break;
-                    case SDL_SCANCODE_TAB:
-                        if (e.key.keysym.mod & KMOD_SHIFT) params_prev();
-                        else                                params_next();
-                        break;
-                    case SDL_SCANCODE_RIGHTBRACKET: params_inc(); break;
-                    case SDL_SCANCODE_LEFTBRACKET:  params_dec(); break;
                     default: break;
                 }
 
@@ -247,6 +268,7 @@ int main(int argc, char *argv[])
                 if (rmkey) debug_handle_keypress(0, rmkey);
             }
         }
+        nk_input_end(s_nk);
         if (!running) break;
 
         // ---- Tick ----------------------------------------------------------
@@ -270,10 +292,16 @@ int main(int argc, char *argv[])
             debug_plot_string_mode13(info);
         }
 
-        params_draw();
-
         // ---- Present -------------------------------------------------------
+        // 1. Upload 8bpp framebuffer as scaled texture.
         pc_present_frame();
+
+        // 2. Build & render Nuklear UI on top at native window resolution.
+        params_draw();
+        nk_sdl_render(NK_ANTI_ALIASING_ON);
+
+        // 3. Flip.
+        SDL_RenderPresent(s_renderer);
 
         // ---- Frame cap -----------------------------------------------------
         Uint32 elapsed = SDL_GetTicks() - frame_start;
@@ -283,6 +311,7 @@ int main(int argc, char *argv[])
 
     // ---- Shutdown ----------------------------------------------------------
     sequence_kill();
+    nk_sdl_shutdown();
     SDL_DestroyTexture(s_texture);
     SDL_DestroyRenderer(s_renderer);
     SDL_DestroyWindow(s_window);
