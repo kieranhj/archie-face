@@ -30,6 +30,9 @@ void debug_word_add(uintptr_t addr, uintptr_t val);
 #ifdef PLATFORM_PC
 void debug_plot_string_at(const char *string, int x, int y);
 void debug_plot_string_at_inv(const char *string, int x, int y);
+void debug_printf(const char *fmt, ...);
+#else
+#define debug_printf(...) ((void)0)
 #endif
 
 #endif // __DEBUG_H__

@@ -21,4 +21,9 @@ void seq_part3_tick();
 void seq_part3_draw();
 void seq_part3_kill();
 
+void seq_part4_init();
+void seq_part4_tick();
+void seq_part4_draw();
+void seq_part4_kill();
+
 #endif // __SEQ_PARTS_H__

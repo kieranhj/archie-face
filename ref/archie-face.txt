@@ -90,12 +90,13 @@ PUSH 2 / Flow Fields
 Prototypes to try
 - Colours:
     - Different particle sources that have a colour each - how do they mix / interact? - RAMPS
-    - Changing particle colour over time. => Need lifetime.
+    - Changing particle colour over time. => Need lifetime. DONE
     - Colour by distance from attractors.
     - Colour by speed. => All move at constant speed.
     - Colour by flow direction? => Need sensible palette arrangment.
     - Dave asks if the particles can twinkle a bit (cf. Empires) - just use a colour ramp?
         - Particle age => ramp is quite a lot of lookups...
+        - Need appropriate ramp to try.
 - Speed:
     - Different particles moving at different speeds - slow things down! - DONE
     - Speed ~ age? - NOT PER PARTICLE
@@ -112,9 +113,9 @@ Prototypes to try
     - Looks quite nice when the noise grid is updated (although it takes a coupe of seconds) - PREBAKE THESE
     - Try scrolling the field (offset & wrap the table)
     - Adding fields together - VORTEX FIELD MOVING THROUGH THE NOISE FIELD?
-    - Rotate the field (add a fixed offset to the table value in the loop) - DONE IN EMITTE
+    - Rotate the field (add a fixed offset to the table value in the loop) - DONE IN EMITTER
 - COLOUR FIELD!
-    - Look up the colour based on (x,y) position of the particle
+    - Look up the colour based on (x,y) position of the particle - DONE INTO 1D RAMP
     - Field can have a different resolution to the flow field
     - Easy to scroll the colour field for effects
     - Use a plasma type pattern - although this would suggest cycling the palette...
@@ -133,12 +134,13 @@ TODO:
     - Colour? - PER EMITTER
     - Speed? - PER EMITTER
     - Delta vector. - PER EMITTER
-- Update emitter properties per tick w/ callback fn. - just update in tick.
+- Update emitter properties per tick w/ callback fn. - just update in tick. - ADDED TICK FN PER PART
 - Instance flow fields. - DONE
 - Allow them to be added together to affect the particles.
-- Or attach different emitters to different fields?
+- Or attach different emitters to different fields? - POSSIBLE
 - Rotate and offset (scrolling) fields.
 - Load const tables rather than generate them at runtime in debug for iteration speed. - DONE
+- Try Widescreen 320x180 MODE at 8MHz?
 
 
 BUG?
@@ -150,3 +152,4 @@ How to save interesting configurations?
 NOTES:
 - I like that brighter particles appear to be in front of dark particles -> makes it look more 3D...
 - Lower smoothing values for noise makes for gentler curves in the field -> looks nicer
+- Could do with more inspo bouncing ideas off Dave...

@@ -152,6 +152,24 @@ void debug_word_add(uintptr_t addr, uintptr_t val)
 }
 
 // ============================================================================
+// PC-only: printf to stdout for quick debugging.
+// ============================================================================
+
+#ifdef PLATFORM_PC
+#include <stdio.h>
+#include <stdarg.h>
+
+void debug_printf(const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stdout, fmt, args);
+    va_end(args);
+    fflush(stdout);
+}
+#endif // PLATFORM_PC
+
+// ============================================================================
 // PC-only: position-aware string rendering for the params panel.
 // debug_plot_string_at()     — white glyphs (0xff pixels)
 // debug_plot_string_at_inv() — inverted glyphs (0x00 on 0xff) for selection

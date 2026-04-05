@@ -190,3 +190,31 @@ void emitter_draw_ramp_with_x(emitter_t *emitter, const u8 *ramp, int size)
         plot_point(px, FIX16_TO_INT(p->pos.y), ramp[x]);
     }
 }
+
+void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z)
+{
+    // Camera looking at (0,0,0)
+    // Camera distance = camera z - particle.y;
+
+    // Particle at (160,128)
+    // Cam Z = 266
+    // Cam dist = 266-128 = 138
+    // Persp = 128/138 = 0.927
+    // px = 160-160 = 0*0.927 = 0
+    // py = 64 * 0.927 = 59
+
+    u8 col = emitter->colour;       // FIX16_TO_INT(a) for colour from direction.
+
+    for(int i = 0; i < emitter->max_particles; i++)
+    {
+        particle_t *p = &emitter->particles[i];
+
+        float cam_dist = cam_z - FIX16_TO_FLOAT(p->pos.y);
+        float persp = 128.0f / cam_dist;      // Turn this into a lookup later.
+
+        float px = (FIX16_TO_FLOAT(p->pos.x)-160.0f) * persp;
+        float py = cam_y * persp;
+
+        plot_point((int)px+160, (int)py+128, col);
+    }
+}

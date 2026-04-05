@@ -11,7 +11,7 @@
 // ============================================================================
 
 #define SEQ_DEFAULT_PART    2
-#define SEQ_MAX_PARTS       3
+#define SEQ_MAX_PARTS       4
 
 typedef void (*seq_func)();
 
@@ -21,6 +21,7 @@ static seq_func seq_part_table[SEQ_MAX_PARTS][4] =
     { seq_part1_init, seq_part1_tick, seq_part1_draw, seq_part1_kill },
     { seq_part2_init, seq_part2_tick, seq_part2_draw, seq_part2_kill },
     { seq_part3_init, seq_part3_tick, seq_part3_draw, seq_part3_kill },
+    { seq_part4_init, seq_part4_tick, seq_part4_draw, seq_part4_kill },
 };
 
 // ============================================================================
