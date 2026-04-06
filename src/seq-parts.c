@@ -274,21 +274,24 @@ void seq_part3_kill()
 // ============================================================================
 
 static float seq_part4_cam_pos_y = 64.0f;
-static float seq_part4_cam_pos_z = 256.0f + 10.0f;
+static float seq_part4_cam_pos_z = 256.0f;
+
+#define PART4_GRID_WIDTH  640
+#define PART4_GRID_HEIGHT 512
 
 void seq_part4_init()
 {
     // Register PC parameter widgets.
-    param_float("cam_pos_y", &seq_part4_cam_pos_y, 0.0f, 128.0f, 0.1f);
-    param_float("cam_pos_z", &seq_part4_cam_pos_z, 0.0f, 512.0f, 0.1f);
+    param_float("cam_pos_y", &seq_part4_cam_pos_y, 0.0f, PART4_GRID_HEIGHT/2, 0.1f);
+    param_float("cam_pos_z", &seq_part4_cam_pos_z, 0.0f, PART4_GRID_WIDTH, 0.1f);
 
     // Flow field init.
-    field1 = flow_field_make(20, 16);
+    field1 = flow_field_make_ext(40, 32, PART4_GRID_WIDTH, PART4_GRID_HEIGHT);
     flow_field_init_with_noise(field1, 0.02f);  // lower values are smoother on a coarse field.
     flow_field_init(field1);  // inits debug.
 
     // Setup Particle emitters.
-    emitter1 = emitter_make(300, 1.0f, 64, 160, 128, 50, 500);
+    emitter1 = emitter_make(300, 1.0f, 64, PART4_GRID_WIDTH/2, PART4_GRID_HEIGHT/2, 50, 500);
     emitter_set_delta(emitter1, (vec2fix16_t){.x=FLOAT_TO_FIX16(-0.5f), .y=FLOAT_TO_FIX16(0.0f)});
     emitter_set_field(emitter1, field1);
 
@@ -308,20 +311,20 @@ void seq_part4_init()
 
 void seq_part4_tick()
 {
-    vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(160), .y=INT_TO_FIX16(128)};
+    vec2fix16_t emitter1_pos = {.x=INT_TO_FIX16(PART4_GRID_WIDTH/2), .y=INT_TO_FIX16(PART4_GRID_HEIGHT/2)};
 
     //if (flow_field_rotate_grid) emitter_set_rotation(emitter2, emitter2_rot+=0.1f);
 
     // Update any emitter properties.
     fix16_t a = FIX16_FRACTION(g_frame_count,2);  // Use frame count as brad.
     fix16_t r = INT_TO_FIX16(80);           // Radius
-    emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(a), r);
-    emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(a), r);
+    emitter1_pos.x = INT_TO_FIX16(PART4_GRID_WIDTH/2) + FIX16_MUL(sin_fix16(a), r);
+    emitter1_pos.y = INT_TO_FIX16(PART4_GRID_HEIGHT/2) + FIX16_MUL(cos_fix16(a), r);
     emitter_set_origin(emitter1, emitter1_pos);
 
     r = INT_TO_FIX16(50);           // Radius
-    emitter1_pos.x = INT_TO_FIX16(160) + FIX16_MUL(sin_fix16(-a), r);
-    emitter1_pos.y = INT_TO_FIX16(128) + FIX16_MUL(cos_fix16(-a), r);
+    emitter1_pos.x = INT_TO_FIX16(PART4_GRID_WIDTH/2) + FIX16_MUL(sin_fix16(-a), r);
+    emitter1_pos.y = INT_TO_FIX16(PART4_GRID_HEIGHT/2) + FIX16_MUL(cos_fix16(-a), r);
     emitter_set_origin(emitter2, emitter1_pos);
     
     // Tick the emitters to move the particles.
@@ -334,8 +337,8 @@ void seq_part4_draw()
    if (flow_field_show_grid) flow_field_draw(field1);
 
     //colour_draw_palette();
-    emitter_draw_as_plane(emitter2, seq_part4_cam_pos_y, seq_part4_cam_pos_z);
-    emitter_draw_as_plane(emitter1, seq_part4_cam_pos_y, seq_part4_cam_pos_z);
+    emitter_draw_as_plane(emitter2, seq_part4_cam_pos_y, seq_part4_cam_pos_z, PART4_GRID_WIDTH);
+    emitter_draw_as_plane(emitter1, seq_part4_cam_pos_y, seq_part4_cam_pos_z, PART4_GRID_WIDTH);
 }
 
 void seq_part4_kill()

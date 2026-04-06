@@ -15,6 +15,15 @@ void plot_point(register int x, register int y, register u8 c)
     if (x>=0 && x<Screen_Width && y>=0 && y<Screen_Height) *(g_framebuffer + x + y*Screen_Stride) = c;
 }
 
+void plot_cross(register int x, register int y, register u8 c)
+{
+    plot_point(x-1,y,c);
+    plot_point(x+1,y,c);
+    plot_point(x,y-1,c);
+    plot_point(x,y+1,c);
+    plot_point(x,y,c);
+}
+
 void plot_block(register int x, register int y, register u8 c)
 {
     int x0=x&~0x3, y0=y&~0x3;

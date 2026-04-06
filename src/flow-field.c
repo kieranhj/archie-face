@@ -86,14 +86,19 @@ void flow_field_init(flow_field_t *debug_field)
 
 flow_field_t *flow_field_make(int cols, int rows)
 {
+    return flow_field_make_ext(cols, rows, Screen_Width, Screen_Height);
+}
+
+flow_field_t *flow_field_make_ext(int cols, int rows, int screen_width, int screen_height)
+{
     flow_field_t *grid = malloc(sizeof(struct flow_field_s) + (cols * rows * sizeof(fix16_t)));
 
     grid->cols = cols;
     grid->rows = rows;
-    grid->step_x = Screen_Width / cols;
-    grid->step_y = Screen_Height / rows;
-    grid->cols_per_pixel = FIX16_FRACTION(cols, 320);
-    grid->rows_per_pixel = FIX16_FRACTION(rows, 256);
+    grid->step_x = screen_width / cols;
+    grid->step_y = screen_height / rows;
+    grid->cols_per_pixel = FIX16_FRACTION(cols, screen_width);
+    grid->rows_per_pixel = FIX16_FRACTION(rows, screen_height);
     
     flow_field_init_with_angle(grid, INT_TO_FIX16(32));
 

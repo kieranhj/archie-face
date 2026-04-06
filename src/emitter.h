@@ -26,6 +26,6 @@ void emitter_draw(emitter_t *emitter);
 void emitter_draw_ramp_with_age(emitter_t *emitter, const u8 *ramp, int size);
 void emitter_draw_ramp_with_x(emitter_t *emitter, const u8 *ramp, int size);
 
-void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z);
+void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z, int plane_width);
 
 #endif // __EMITTER_H__

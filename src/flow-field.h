@@ -14,6 +14,7 @@ extern u32 flow_field_show_grid;
 
 void flow_field_init(flow_field_t *debug_grid);
 flow_field_t *flow_field_make(int cols, int rows);
+flow_field_t *flow_field_make_ext(int cols, int rows, int screen_width, int screen_height);
 void *flow_field_kill(flow_field_t *grid);
 
 void flow_field_init_with_noise(flow_field_t *grid, float smoothing);

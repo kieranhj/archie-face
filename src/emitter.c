@@ -191,7 +191,7 @@ void emitter_draw_ramp_with_x(emitter_t *emitter, const u8 *ramp, int size)
     }
 }
 
-void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z)
+void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z, int plane_width)
 {
     // Camera looking at (0,0,0)
     // Camera distance = camera z - particle.y;
@@ -208,7 +208,7 @@ void emitter_draw_as_plane(emitter_t *emitter, float cam_y, float cam_z)
         float persp = 128.0f / cam_dist;      // Turn this into a lookup later.
 
         // MOVES THE GRID TO BE CENTRED ON (0,0)
-        float px = (FIX16_TO_FLOAT(p->pos.x)-160.0f) * persp;
+        float px = (FIX16_TO_FLOAT(p->pos.x)-(plane_width/2)) * persp;
         float py = cam_y * persp;
 
         // VIEWPORT CENTRE (160,128)
