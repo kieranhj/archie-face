@@ -17,8 +17,8 @@ Archie-Face ("Fast Archimedes C Environment"): an Acorn Archimedes demo framewor
 
 ## Build and run
 
-- `make` (Archie): blocked on 2026-11-22. It needs the `ARCHIESDK` environment variable (SDK is at `D:\tools\archie\ArchieSDK`, moved from `C:\Dev\ArchieSDK`) and the SDK's gcc needs MSYS2 UCRT DLLs (`C:\msys64\ucrt64\bin` on PATH). With both set, the compile on this branch fails: `src/flow-field.c` and `src/seq-parts.c` include `platform/pc/params.h`, which needs `-I.` in CFLAGS. The last recipe line (`cp -f ... | true`) is sh-only, and the SDK's `config.mk` still has `ARCHIECOPYPATH=/c/Users/khcon/OneDrive/Archie/Repos/arculator/hostfs`.
-- To try: `$env:ARCHIESDK='D:/tools/archie/ArchieSDK'; $env:PATH="C:\msys64\ucrt64\bin;$env:PATH"; make` -> `build/grid,ff8`.
+- `make` (Archie) from Windows Terminal (PowerShell) works (verified 2026-11-22), no environment setup needed: `GNUmakefile` (read before `Makefile`) runs recipes in Git's `sh.exe`, defaults `ARCHIESDK` to `D:/tools/archie/ArchieSDK` (an `ARCHIESDK` env var still overrides it) and puts `C:\msys64\ucrt64\bin` on PATH for the SDK gcc's DLLs. `Makefile` gained `-I.` in CFLAGS so `src/*.c` can include `platform/pc/params.h`.
+- Output: `build/grid.elf`, `build/compile.txt`, `build/grid,ff8`, then copied to `ARCHIECOPYPATH` from the SDK's `config.mk`, now `/d/archie/mine/arculator/hostfs` (gitignored there). The build gives 3 warnings (incompatible pointer type for `debug_reboot` in `main.c`, unused `MakeHsvPalette` and `make_sine_field`). Not run in the emulator.
 - PC build (from `CLAUDE.md`): `cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake` then `cmake --build build` -> `build/archie_face_pc.exe` (MSYS2 UCRT gcc, SDL2). The existing `build/CMakeCache.txt` points at the old OneDrive source dir, so configure into a fresh build dir.
 
 ## Local changes
